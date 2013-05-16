@@ -170,6 +170,7 @@ You **MUST** make the initialization call before working with any other PlayRM m
 
 //...
 //...
+//...
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -181,27 +182,26 @@ You **MUST** make the initialization call before working with any other PlayRM m
 }
 ```
 
-
 Once started, the SDK will automatically start collecting basic user information (including geo-location) and engagement data.
 
 ## Demographics and Install Attribution
 
-After the SDK has been loaded, the user info module may be called to collect basic demographic and acquisition information. This data will be used to segment users based on how/where they were acquired and enables improved targeting with basic demographics in addition to the behavioral data collected using other events.
+After the SDK has been loaded, the user info module may be called to collect basic demographic and acquisition information. This data will be used to segment users based on how/where they were acquired and enables improved targeting based on basic demographics in addition to the behavioral data collected using other events.
 
 Provide each user's information using this call:
 
 ```objectivec
-ApiResultEnum Playnomics.instance.userInfo(
-    string country,
-    string subdivision,
-    SexEnum? sex,
-    short? birthyear,
-    string source,
-    string sourceCampaign,
-    string sourceUser,
-    long? installTime)
++ (PNAPIResult) userInfoForType: (PNUserInfoType) type 
+                        country: (NSString *) country 
+                    subdivision: (NSString *) subdivision
+                            sex: (PNUserInfoSex) sex
+                       birthday: (NSDate *) birthday
+                         source: (PNUserInfoSource) source 
+                 sourceCampaign: (NSString *) sourceCampaign 
+                    installTime: (NSDate *) installTime;
 ```
-If any of the parameters are not available, you should pass `null`.
+
+If any of the parameters are not available, you should pass `nil`.
 
 <table>
     <thead>
@@ -214,59 +214,135 @@ If any of the parameters are not available, you should pass `null`.
     <tbody>
         <tr>
             <td><code>country</code></td>
-            <td>string</td>
-            <td></td>
+            <td>NSString *</td>
+            <td>This has been deprecated. Just pass <code>nil</code>.</td>
         </tr>
         <tr>
             <td><code>subdivision</code></td>
-            <td>string</td>
-            <td></td>
+            <td>NSString *</td>
+            <td>This has been deprecated. Just pass <code>nil</code>.</td>
         </tr>
         <tr>
-            <td><code>birthyear</code></td>
-            <td>short?</td>
-            <td>4-digit year, such as 1980</td>
+            <td><code>sex</code></td>
+            <td>PNUserInfoSex</td>
+            <td>
+                <ul>
+                    <li>PNUserInfoSexMale</li>
+                    <li>PNUserInfoSexFemale</li>
+                    <li>PNUserInfoSexUnknown</li>
+                </ul>
+            </td>
         </tr>
         <tr>
-            <td><code>source</code></td>
-            <td>string</td>
-            <td>source of the user, such as "FacebookAds", "UserReferral", "Playnomics", etc. These are only suggestions, any 16-character or shorter string is acceptable.</td>
+            <td><code>birthday</code></td>
+            <td>NSDate</td>
+            <td>A birthday for the player.</td>
+        </tr>
+        <tr>
+            <td><code>sourceAsString</code></td>
+            <td>NSString *</td>
+            <td>
+                Source of the user, such as "FacebookAds", "UserReferral", "Playnomics", etc. These are only suggestions, any 16-character or shorter string is acceptable.
+            </td>
         </tr>
         <tr>
             <td><code>sourceCampaign</code></td>
-            <td>string</td>
-            <td>any 16-character or shorter string to help identify specific campaigns</td>
-        </tr>
-        <tr>
-            <td><code>sourceUser</code></td>
-            <td>strings</td>
-            <td>if the user was acquired via a UserReferral (i.e., a viral message), the `userId` of the person who initially brought this user into the game</td>
+            <td>NSString *</td>
+            <td>
+                Any 16-character or shorter string to help identify specific campaigns
+            </td>
         </tr>
         <tr>
             <td><code>installTime</code></td>
-            <td>long?</td>
-            <td>unix epoch time in seconds when the user originally installed the game</td>
+            <td>NSDate *</td>
+            <td>
+                When the player originally installed the game.
+            </td>
         </tr>
     </tbody>
 </table>
 
-Since PlayRM uses the game client’s IP address to determine geographic location, country and subdivision are often set to null.
+This method is overloaded, with the ability to use an enum for the source
 
-```csharp
-void Start()
+```objectivec
++ (PNAPIResult) userInfoForType: (PNUserInfoType) type 
+                        country: (NSString *) country 
+                    subdivision: (NSString *) subdivision
+                            sex: (PNUserInfoSex) sex
+                       birthday: (NSDate *) birthday
+                 sourceAsString: (NSString *) source 
+                 sourceCampaign: (NSString *) sourceCampaign 
+                    installTime: (NSDate *) installTime;
+```
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>source</code></td>
+            <td>PNUserInfoSource</td>
+            <td>
+                You can use a predefined enumeration of PNUserInfoSource
+                <br/>
+                <ul>
+                    <li>PNUserInfoSourceAdwords</li>
+                    <li>PNUserInfoSourceDoubleClick</li>
+                    <li>PNUserInfoSourceYahooAds</li>
+                    <li>PNUserInfoSourceMSNAds</li>
+                    <li>PNUserInfoSourceAOLAds</li>
+                    <li>PNUserInfoSourceAdbrite</li>
+                    <li>PNUserInfoSourceFacebookAds</li>
+                    <li>PNUserInfoSourceGoogleSearchv
+                    <li>PNUserInfoSourceYahooSearch</li>
+                    <li>PNUserInfoSourceBingSearch</li>
+                    <li>PNUserInfoSourceFacebookSearch</li>
+                    <li>PNUserInfoSourceApplifier</li>
+                    <li>PNUserInfoSourceAppStrip</li>
+                    <li>PNUserInfoSourceVIPGamesNetwork</li>
+                    <li>PNUserInfoSourceUserReferral</li>
+                    <li>PNUserInfoSourceInterGame</li>
+                    <li>PNUserInfoSourceOther</li>
+                </ul>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+Since PlayRM uses the game client’s IP address to determine geographic location, country and subdivision should be set to `nil`.
+
+```objectivec
+#import "AppDelegate.h"
+#import "PlaynomicsSession.h"
+@implementation AppDelegate
+
+//...
+//...
+//...
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    //after Playnomics.startPlaynomics has been called
-    long? installTime = null;
+    
+    //after you initialize the application start
+    NSDate *installDate = nil;
     if(isNewUser){
-        //
-        DateTime baseDate = new DateTime(1970, 1, 1);
-        DateTime now = DateTime.UtcNow;
-        installTime = (long)((date - baseDate).TotalSeconds;
+        installDate = [NSDate date];
     }
 
-    SexEnum playerSex = SexEnum.F;
-    short birthYear = 1980;
-    ApiResultEnum result = Playnomics.instance.userInfo(null, null, playerSex, birthYear, “AppStore”, “Facebook Ad”, null, installTime);
+    PNAPIResult result = [PlaynomicsSession 
+                    userInfoForType: PNUserInfoTypeUpdate
+                    country: nil
+                    subdivision: nil
+                    sex: PNUserInfoSexFemale
+                    birthday: [[NSDate alloc] initWithString:@"1980-01-01"];
+                    source: @"AppStore"
+                    sourceCampaign: @"Facebook Ad"
+                    installTime: installDate];
 }
 ```
 
@@ -278,16 +354,56 @@ This event tracks users that have monetized and the amount they have spent in to
 * FBC (Facebook Credits)
 * USD (US Dollars)
 
-or an in-game *virtual* currency.
+or an in-game, *virtual* currency.
 
-```csharp
-ApiResultEnum Playnomics.instance.transaction(
-    long transactionId,
-    TransactionType transactionType,
-    TransactionCurrency[] transactionCurrencies,
-    string itemId,
-    int? quantity,
-    string otherUserId)
+<table>
+    <thead>
+        <tr>
+            <th>Currency</th>
+            <th>Currency Data Type</th>
+            <th>PNCurrencyCategoryType</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Real</td>
+            <td>
+                <strong>PNCurrencyType</strong>
+                <ul>
+                    <ul>
+                        <li>PNCurrencyUSD: USD dollars</li>
+                        <li>PNCurrencyFBC: Facebook Credits</li>
+                    </ul>
+                </ul>
+            </td>
+            <td>
+                The <code>currencyCategory</code> is <strong>PNCurrencyCategoryVirtual</strong>
+            </td>
+        </tr>
+        <tr>
+            <td>Virutal</td>
+            <td>
+                An <strong>NSString *</strong> name, 16 characters or less.
+            </td>
+            <td>
+                The <code>currencyCategory</code> is <strong>PNCurrencyCategoryVirtual</strong>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+Method for transactions with a single transaction in real currency.
+
+```objectivec
++ (PNAPIResult) transactionWithId: (signed long long) transactionId
+                           itemId: (NSString *) itemId
+                         quantity: (double) quantity
+                             type: (PNTransactionType) type
+                      otherUserId: (NSString *) otherUserId
+                     currencyType: (PNCurrencyType) currencyType
+                    currencyValue: (double) currencyValue
+                 currencyCategory: (PNCurrencyCategory) currencyCategory;
 ```
 <table>
     <thead>
@@ -300,64 +416,108 @@ ApiResultEnum Playnomics.instance.transaction(
     <tbody>
         <tr>
             <td><code>transactionId</code></td>
-            <td>long</td>
-            <td>A unique identifier for this transaction. If you don't have a transaction ID from payments system, you can genenate large random number.</td>
-        </tr>
-        <tr>
-            <td><code>transactionType<code></td>
-            <td>TransactionType</td>
+            <td>signed long long</td>
             <td>
-                The type of transaction occurring:
-                <ul>
-                    <li>BuyItem: A purchase of virtual item. The <code>quantity</code> is added to the user's inventory</li>
-                    <li>
-                        SellItem: A sale of a virtual item to another user. The item is removed from the user's inventory. Note: a sale of an item will result in two events with the same <code>transactionId</code>, one for the sale with type SellItem, and one for the receipt of that sale, with type BuyItem.
-                    </li>
-                    <li>
-                        ReturnItem: A return of a virtual item to the store. The item is removed from the user's inventory
-                    </li>
-                    <li>BuyService: A purchase of a service, e.g., VIP membership </li>
-                    <li>SellService: The sale of a service to another user</li>
-                    <li>ReturnService:  The return of a service</li>
-                    <li>
-                        CurrencyConvert: An conversion of currency from one form to another, usually in the form of real currency (e.g., US dollars) to virtual currency.  If the type of a transaction is CurrencyConvert, then there should be at least 2 elements in the <code>transactionCurrencies</code> array
-                    </li>
-                    <li>Initial: An initial allocation of currency and/or virtual items to a new user</li>
-                    <li>Free: Free currency or item given to a user by the application</li>
-                    <li>
-                        Reward: Currency or virtual item given by the application as a reward for some action by the user
-                    </li>
-                    <li>
-                        GiftSend: A virtual item sent from one user to another. Note: a virtual gift should result in two transaction events with the same <code>transactionId</code>, one with the type GiftSend, and another with the type GiftReceive
-                    </li>
-                    <li>GiftReceive: A virtual good received by a user. See note for GiftSend type</li>
-                </ul>
+                A unique identifier for this transaction. If you don't have a transaction ID from payments system, you can genenate large random number.
             </td>
         </tr>
         <tr>
-            <td><code>transactionCurrencies</code></td>
-            <td>TransactionCurrency[]</td>
-            <td>An array of <code>TransactionCurrency</code>, describing the different types of currency used in this transaction.</td>
-        </tr>
-        <tr>
             <td><code>itemId</code></td>
-            <td>string</td>
+            <td>NSString *</td>
             <td>If applicable, an identifier for the item. The identifier should be consistent.</td>
         </tr>
         <tr>
             <td><code>quantity</code></td>
-            <td>int?</td>
+            <td>double</td>
             <td>If applicable, the number of items being purchased.</td>
         </tr>
         <tr>
-            <td><code>otherUserId</code></td>
-            <td>string</td>
+            <td><code>transactionType<code></td>
+            <td>PNTransactionType</td>
             <td>
-               If applicable, the other user involved in the transaction. A contextual example is a user sending a gift to another user.
+                The type of transaction occurring:
+                <ul>
+                    <li>
+                        <strong>PNTransactionBuyItem</strong>: A purchase of virtual item. The <code>quantity</code> is added to the player's inventory</li>
+                    <li>
+                        <strong>PNTransactionSellItem</strong>: A sale of a virtual item to another player. The item is removed from the player's inventory. Note: a sale of an item will result in two events with the same <code>transactionId</code>, one for the sale with type SellItem, and one for the receipt of that sale, with type BuyItem.
+                    </li>
+                    <li>
+                        <strong>PNTransactionReturnItem</strong>: A return of a virtual item to the store. The item is removed from the player's inventory
+                    </li>
+                    <li><strong>PNTransactionBuyService</strong>: A purchase of a service, e.g., VIP membership </li>
+                    <li><strong>PNTransactionSellService</strong>: The sale of a service to another player</li>
+                    <li><strong>PNTransactionReturnService</strong>:  The return of a service</li>
+                    <li>
+                        <strong>PNTransactionCurrencyConvert</strong>: An conversion of currency from one form to another, usually in the form of real currency (e.g., US dollars) to virtual currency.  If the type of a transaction is CurrencyConvert, then there should be at least 2 elements in the <code>transactionCurrencies</code> array
+                    </li>
+                    <li>
+                        <strong>PNTransactionInitial</strong>: An initial allocation of currency and/or virtual items to a new player
+                    </li>
+                    <li><strong>PNTransactionFree</strong>: Free currency or item given to a player by the application</li>
+                    <li>
+                        <strong>PNTransactionReward</strong>: Currency or virtual item given by the application as a reward for some action by the player
+                    </li>
+                    <li>
+                        <strong>PNTransactionGiftSend</strong>: A virtual item sent from one player to another. Note: a virtual gift should result in two transaction events with the same <code>transactionId</code>, one with the type GiftSend, and another with the type GiftReceive
+                    </li>
+                    <li>
+                        <strong>PNTransactionGiftReceive</strong>: A virtual good received by a player. See note for <strong>PNTransactionGiftSend</strong> type
+                     </li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><code>otherUserId</code></td>
+            <td>NSString *</td>
+            <td>
+               If applicable, the other user involved in the transaction. A contextual example is a player sending a gift to another player.
+            </td>
+        </tr>
+        <tr>
+            <td><code>currencyType</code></td>
+            <td>PNCurrencyType</td>
+            <td>
+                <ul>
+                    <li>PNCurrencyUSD</li>
+                    <li>PNCurrencyFBC</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><code>currencyValue</code></td>
+            <td>double</td>
+            <td>The positive amount spent.</td>
+        </tr>
+        <tr>
+            <td><code>currencyCategory</code></td>
+            <td>PNCurrencyCategory</td>
+            <td>
+                <ul>
+                    <li><strong>PNCurrencyCategoryReal</strong>: for *real* currency</li>
+                    <li><strong>PNCurrencyCategoryVirtual</strong>: for *virtual* currency</li>
+                </ul>
             </td>
         </tr>
     </tbody>
 </table>
+
+
+
+```objectivec
++ (PNAPIResult) transactionWithId: (signed long long) transactionId
+                           itemId: (NSString *) itemId
+                         quantity: (double) quantity
+                             type: (PNTransactionType) type
+                      otherUserId: (NSString *) otherUserId
+             currencyTypeAsString: (NSString *) currencyType
+                    currencyValue: (double) currencyValue
+                 currencyCategory: (PNCurrencyCategory) currencyCategory;
+```
+
+
+
+
 
 The `TransactionCurrency` class encapsulates the type of currency that was used in the transaction. We provide static constructors for common types of currency.
 
