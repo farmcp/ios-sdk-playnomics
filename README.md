@@ -870,7 +870,7 @@ In practice, a frame can be loaded in a variety of ways.
 #import "ViewController.h"
 
 @implementation ViewController
-
+{
     - (void)viewDidLoad
     {
         PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
@@ -1148,12 +1148,129 @@ In the following example, we wish to generate third-party revenue from players u
 The related messages would be configured in the Control Panel to use this callback by placing this in the **Target URL** for each message :
 
 * **Non-monetizers, in their 5th day of game play** : `HTTP URL for Third Party Ad`
-* **Default** : `pnx://ClickHandler.grantMana`
+* **Default** : `pnx://grantMana`
 
 Push Notifications
 ==================
 
+## Registering for PlayRM Push Messaging
 
+To get started with PlayRM Push Messaging, your app will need to register with Apple to receive push notifications. Do this by calling the registerForRemoteNotificationTypes method on UIApplication.
+
+```objectivec
+@implementation AppDelegate
+
+//...
+//...
+//...
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+    const long applicationId = <APPID>;
+    [PlaynomicsSession startWithApplicationId:applicationId];
+
+    //enable notifications
+    UIApplication *app = [UIApplication sharedApplication];
+    [app registerForRemoteNotificationTypes: (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
+
+    //...
+    //...
+}
+```
+
+Once the player, authorizes push notifications from your app, you need to provide Playnomics with player's device token
+```
+@implementation AppDelegate
+
+//...
+//...
+
+-(void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+{
+   [PlaynomicsSession enablePushNotificationsWithToken:deviceToken];
+}
+```
+
+## Push Messaging Impression and Click Tracking
+
+There are 3 situations in which an iOS device can receive a Push Notificaiton
+
+<table>
+    <thead>
+        <tr>
+            <th>Sitatuation</th>
+            <th>Push Message Shown?</th>
+            <th>Delegate Handler</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>App is not running</td>
+            <td rowspan="2">Yes</td>
+            <td>didFinishLaunchingWithOptions:(NSDictionary*)launchOptions</td>
+        </tr>
+        <tr>
+            <td>App is running in the background</td>
+            <td rowspan="2">
+                didReceiveRemoteNotification:(NSDictionary*)userInfo
+            </td>
+        </tr>
+        <tr>
+            <td>App is running in the foreground</td>
+            <td>No</td>
+        </tr>
+    </tbody>
+</table>
+
+When the device receives a push message and the player opens the app, the app needs to notify Playnomics by calling the method:
+
+```objectivec
+@implementation AppDelegate
+
+//...
+//...
+
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+
+    long appId = 2L;
+    [PlaynomicsSession setTestMode:NO];
+    [PlaynomicsSession startWithApplicationId:appId];
+    
+    UIApplication *app = [UIApplication sharedApplication];
+
+    [app registerForRemoteNotificationTypes: (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
+    
+    NSDictionary *apn = [launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
+    if (apn) {
+        [PlaynomicsSession pushNotificationsWithPayload:apn];
+    }
+
+    //...
+    //...
+}
+
+-(void) application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+{
+    NSMutableDictionary *payload = [userInfo mutableCopy];
+    [PlaynomicsSession pushNotificationsWithPayload:payload];
+    [payload release];
+}
+```
+By default, iOS does not show push notifications when your app is already in the foreground. Consequently, PlayRM does track these push notifications as impressions or clicks.
+
+However, if you do circumvent this default behavior and show the Push Notification when the app is in the foreground, you can override this functionality by modifying the code in the `didReceiveRemoteNotification` method.
+
+```objectivec
+-(void) application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+{
+    NSMutableDictionary *payload = [userInfo mutableCopy];
+    [payload setObject:[NSNumber numberWithBool:YES] forKey:@"pushIgnored"];
+    [PlaynomicsSession pushNotificationsWithPayload:payload];
+    [payload release];
+}
+```
 
 Support Issues
 ==============
