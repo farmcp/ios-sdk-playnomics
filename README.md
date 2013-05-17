@@ -68,7 +68,7 @@ You can download the SDK by forking this repo or downloading the archived files.
 
 Then import the SDK files into your existing game through Xcode:
 
-![Importing the prefab](http://www.playnomics.com/integration/img/unity/prefab.png)
+
 
 ### Interacting with PlayRM in Your Game
 
