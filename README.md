@@ -879,7 +879,7 @@ In practice, a frame can be loaded in a variety of ways.
 
     -void someOtherEvent()
     {
-        frame.start();
+        [frame.start];
     }
 }
 ```
@@ -1229,7 +1229,6 @@ When the device receives a push message and the player opens the app, the app ne
 
 //...
 //...
-
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
