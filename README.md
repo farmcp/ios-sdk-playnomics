@@ -1,13 +1,13 @@
 Playnomics PlayRM iOS SDK Integration Guide
 =============================================
-This guide showcases the features of the PlayRM iOS SDK and shows how to integrate the SDK with your game. Our SDK provides game publishers with tools for tracking player behavior and engagement so that they can:
+This guide showcases the features of the PlayRM iOS SDK and shows how to integrate the SDK within your game. Our SDK provides game publishers with tools for tracking player behavior and engagement so that they can:
 
 * Better understand and segment their audience
 * Reach out to new like-minded players
 * Retain their current audience
 * Ultimately generate more revenue for their games
 
-This is SDK is intended for working with native iOS games built with XCode, if you're using Unity and deploying your game to iOS, please refer to the <a target="_blank" href="https://github.com/playnomics/unity-sdk#playnomics-playrm-unity-sdk-integration-guide">PlayRM Unity SDK</a>.
+This is SDK is intended for working with native iOS games built with Xcode, if you're using Unity and deploying your game to iOS, please refer to the <a target="_blank" href="https://github.com/playnomics/unity-sdk#playnomics-playrm-unity-sdk-integration-guide">PlayRM Unity SDK</a>.
 
 Integration of the PlayRM SDK into an existing or brand new iOS game involves registering your game with the PlayRM service and properly configuring the SDK. The SDK communicates with the PlayRM RESTful API, and the events are processed and aggregated for your PlayRM Dashboard in the control panel.
 
@@ -49,7 +49,7 @@ Before you can integrate with the PlayRM SDK you'll need to sign up and register
 
 ## Signing Up for the PlayRM Service
 
-Visit <a href="https://controlpanel.playnomics.com/signup" target="_blank">https://controlpanel.playnomics.com/signup</a> to create an account. The control panel is the dashboard to manage all of the PlayRM features once the SDK integration has been completed.
+Visit <a href="https://controlpanel.playnomics.com/signup" target="_blank">https://controlpanel.playnomics.com/signup</a> to create an account. The control panel is the dashboard to manage PlayRM features once the SDK integration is completed.
 
 ## Register Your Game
 After receiving a registration confirmation email, login to the <a href="https://controlpanel.playnomics.com" target="_blank">control panel</a>. Select the "Applications" tab and create a new application. Your application will be granted an Application ID (`<APPID>`) and an API KEY.
@@ -58,28 +58,23 @@ Basic Integration
 =================
 
 ## Installing the SDK
-You can download the SDK by forking this repo or downloading an archive. All of the necessary install files are in the *build* folder:
+You can download the SDK by forking this repo or downloading the archived files. All of the necessary install files are in the *build* folder:
 
 * libplaynomics.a
 * PlaynomicsFrame.h
 * PlaynomicsMessaging.h
 * PlaynomicsSession.h
 
-Then import the SDK files into your existing game through X-Code:
+Then import the SDK files into your existing game through Xcode:
 
 ![Importing the prefab](http://www.playnomics.com/integration/img/unity/prefab.png)
 
 ### Interacting with PlayRM in Your Game
 
-All session-related calls are made through a `SharedInstance` class `PlaynomicsSession` while all messaging-related calls are made through a `SharedInstance` class `PlaynomicsMessaging`.
-
-[Import the files]
-
-To work with any of these classes, import the header files:
+All session-related calls are made through a `SharedInstance` class `PlaynomicsSession` while all messaging-related calls are made through a `SharedInstance` class `PlaynomicsMessaging`. To work with any of these classes, you need to import the appropriate header file:
 
 ```objective-c
 #import PlaynomicsSession.h
-#import PlaynomicsMessaging.h
 ```
 
 All public methods, except for messaging specific calls, return an enumeration `PNAPIResult`. The values for this enumeration are:
@@ -139,7 +134,7 @@ All public methods, except for messaging specific calls, return an enumeration `
 
 ### Starting a Player Session
 
-To start collecting behavior data, you need to initialize the PlayRM session. In the class that implements `AppDelegate`, start your PlayRM Session in the `didFinishLaunchingWithOptions` method
+To start collecting behavior data, you need to initialize the PlayRM session. In the class that implements `AppDelegate`, start the PlayRM Session in the `didFinishLaunchingWithOptions` method.
 
 You can either provide a dynamic `<USER-ID>` to identify each player:
 
@@ -154,7 +149,7 @@ or have PlayRM, generate a *best-effort* unique-identifier for the player:
 + (PNAPIResult) startWithApplicationId:(signed long long) applicationId;
 ```
 
-If you do choose to provide a `<USER-ID>`, this value should be a persistent, anonymized, and unique to each player. This is typically discerned dynamically when a player starts the game. Some potential implementations:
+If you do choose to provide a `<USER-ID>`, this value should be persistent, anonymized, and unique to each player. This is typically discerned dynamically when a player starts the game. Some potential implementations:
 
 * An internal ID (such as a database auto-generated number).
 * A hash of the user’s email address.
@@ -182,11 +177,11 @@ You **MUST** make the initialization call before working with any other PlayRM m
 }
 ```
 
-Once started, the SDK will automatically start collecting basic user information (including geo-location) and engagement data.
+Once started, the SDK will automatically begin collecting basic user information (including geo-location) and engagement data.
 
 ## Demographics and Install Attribution
 
-After the SDK has been loaded, the user info module may be called to collect basic demographic and acquisition information. This data will be used to segment users based on how/where they were acquired and enables improved targeting based on basic demographics in addition to the behavioral data collected using other events.
+After the SDK is loaded, the user info module may be called to collect basic demographic and acquisition information. This data is used to segment users based on how/where they were acquired and enables improved targeting with basic demographics, in addition to the behavioral data collected using other events.
 
 Provide each user's information using this call:
 
@@ -447,9 +442,9 @@ This outlines how currencies are described in PlayRM iOS
                     </li>
                     <li><strong>PNTransactionBuyService</strong>: A purchase of a service, e.g., VIP membership </li>
                     <li><strong>PNTransactionSellService</strong>: The sale of a service to another player</li>
-                    <li><strong>PNTransactionReturnService</strong>:  The return of a service</li>
+                    <li><strong>PNTransactionReturnService</strong>: The return of a service</li>
                     <li>
-                        <strong>PNTransactionCurrencyConvert</strong>: An conversion of currency from one form to another, usually in the form of real currency (e.g., US dollars) to virtual currency.  If the type of a transaction is CurrencyConvert, then there should be at least 2 elements in the <code>transactionCurrencies</code> array
+                        <strong>PNTransactionCurrencyConvert</strong>: A conversion of currency from one form to another, usually in the form of real currency (e.g., US dollars) to virtual currency.  If the type of a transaction is CurrencyConvert, then there should be at least 2 elements in the <code>transactionCurrencies</code> array
                     </li>
                     <li>
                         <strong>PNTransactionInitial</strong>: An initial allocation of currency and/or virtual items to a new player
@@ -497,7 +492,7 @@ This outlines how currencies are described in PlayRM iOS
 </table>
 
 
-A convience method for transactions with a single `currencyType` of <strong>PNCurrencyType</strong>.
+An overload for `transactionWithId` with a single `currencyType` of <strong>PNCurrencyType</strong>.
 
 ```objectivec
 + (PNAPIResult) transactionWithId: (signed long long) transactionId
@@ -513,7 +508,7 @@ A convience method for transactions with a single `currencyType` of <strong>PNCu
 All arguments are the same as the previous method, except that the `currencyType`,`currencyValue`, and `currencyCategory` are singular. The `currencyCategory` is likely PNCurrencyCategoryReal.
 
 
-A convience method for transactions with a single `currencyTypeAsString` of <strong>NSString *</strong>.
+An overload for `transactionWithId` with a single `currencyTypeAsString` of <strong>NSString *</strong>.
 
 ```objectivec
 + (PNAPIResult) transactionWithId: (signed long long) transactionId
@@ -528,14 +523,14 @@ A convience method for transactions with a single `currencyTypeAsString` of <str
 
 All arguments are the same as the first method, except that the `currencyTypeAsString`,`currencyValue`, and `currencyCategory` are singular. The `currencyCategory` is likely PNCurrencyCategoryVirtual.
 
-We hightlight three common use-cases below.
+We highlight three common use-cases below.
 * [Purchases of In-Game Currency with Real Currency](#purchases-of-in-game-currency-with-real-currency)
 * [Purchases of Items with Real Currency](#purchases-of-items-with-real-currency)
 * [Purchases of Items with In-Game Currency](#purchases-of-items-with-in-game-currency)
 
 ### Purchases of In-Game Currency with Real Currency
 
-A very common monetization strategy is to incentivize players to purchase premium, in-game currency with real currency. PlayRM treats this like a currency exchange. This is one of the few cases where multiple currencies are used in a transaction. `itemId`, `quantity`, and `otherUserId` are left `null`.
+A very common monetization strategy is to incentivize players to purchase premium, in-game currency with real currency. PlayRM treats this like a currency exchange. This is one of the few cases where multiple currencies are used in a transaction (first implementation of `transactionWithId`. `itemId`, `quantity`, and `otherUserId` are left `null`.
 
 ```objectivec
 //player purchases 500 MonsterBucks for 10 USD
@@ -546,12 +541,12 @@ NSMutableArray *currencyCategories = [NSMutableArray array];
 
 //notice that we're adding all data about each currency in order
 
-//in-game currency data
+//in-game currency
 [currencyTypes addObject: @"MonsterBucks"];
 [currencyValues addObject: [NSNumber numberWithDouble: 500]];
 [currencyCategories addObject: [NSNumber numberWithInt: PNCurrencyCategoryVirtual]];
 
-//real currency data
+//real currency
 [currencyTypes addObject: [NSNumber numberWithInt: PNCurrencyUSD]];
 [currencyValues addObject: [NSNumber numberWithDouble: -10]];
 [currencyCategories addObject: [NSNumber numberWithInt: PNCurrencyCategoryReal]];
@@ -588,7 +583,7 @@ PNAPIResult result = [PlaynomicsSession transactionWithId: transactionId
 
 ### Purchases of Items with Premium Currency
 
-This event is used to segment monetized users (and potential future monetizers) by collecting information about how and when they spend their premium currency (an in-game currency that is primarily acquired using a *real* currency). This is one level of information deeper than the previous use-cases.
+This event is used to segment monetized players (and potential future monetizers) by collecting information about how and when they spend their premium currency (an in-game currency that is primarily acquired using a *real* currency). This is one level of information deeper than the previous use-cases.
 
 #### Currency Exchanges
 
@@ -615,7 +610,7 @@ NSMutableArray *currencyCategories = [NSMutableArray array];
 
 //premium currency data
 [currencyTypes addObject: @"MonsterBucks"];
-[currencyValues addObject: [NSNumber numberWithDouble: -20]];
+[currencyValues addObject: [NSNumber numberWithDouble: -10]];
 [currencyCategories addObject: [NSNumber numberWithInt: PNCurrencyCategoryVirtual]];
 
 PNAPIResult result = [PlaynomicsSession transactionWithId: transactionId 
@@ -653,17 +648,15 @@ double premiumCost = 5;
 
 ## Invitations and Virality
 
-The virality module allows you to track a singular invitation from one user to another (e.g., inviting friends to join a game).
+The virality module allows you to track a single invitation from one player to another (e.g., inviting friends to join a game).
 
-If multiple requests can be sent at the same time, a separate function call should be made for each recipient.
+If multiple requests can be sent at the same time, a separate call should be made for each recipient.
 
-```csharp
-ApiResultEnum Playnomics.instance.invitationSent(
-  long invitationId,
-  string recipientUserId,
-  string recipientAddress,
-  string method)
-
+```objectivec
++ (PNAPIResult) invitationSentWithId: (signed long long) invitationId
+                     recipientUserId: (NSString *) recipientUserId 
+                    recipientAddress: (NSString *) recipientAddress 
+                              method: (NSString *) method;
 ```
 <table>
     <thead>
@@ -676,28 +669,28 @@ ApiResultEnum Playnomics.instance.invitationSent(
     <tbody>
         <tr>
             <td><code>invitationId</code></td>
-            <td>long</td>
+            <td>signed long long</td>
             <td>
                 A unique 64-bit integer identifier for this invitation. 
 
-                If no identifier is available this could be a hash/MD5/SHA1 of the sender's and neighbor's IDs concatenated. <strong>The resulting identifier can not be personally identifiable.</strong>
+                If no identifier is available, this could be a hash/MD5/SHA1 of the sender's and neighbor's IDs concatenated. <strong>The resulting identifier can not be personally identifiable.</strong>
             </td>
         </tr>
         <tr>
             <td><code>recipientUserId</code></td>
-            <td>string</td>
+            <td>NSString *</td>
             <td>This can be a hash/MD5/SHA1 of the recipient's Facebook ID, their Facebook 3rd Party ID or an internal ID. It cannot be a personally identifiable ID.</td>
         </tr>
         <tr>
             <td><code>recipientAddress</code></td>
-            <td>string</td>
+            <td>NSString *</td>
             <td>
                 An optional way to identify the recipient, for example the <strong>hashed email address</strong>. When using <code>recipientUserId</code> this can be <code>null</code>.
             </td>
         </tr>
         <tr>
             <td><code>method</code></td>
-            <td>string</td>
+            <td>NSString *</td>
             <td>
                 The method of the invitation request will include one of the following:
                 <ul>
@@ -710,12 +703,12 @@ ApiResultEnum Playnomics.instance.invitationSent(
     </tbody>
 </table>
 
-You can then track each invitation acceptance. The important thing to note is that you will need to pass the invitationId through the invitation link.
+You can then track each invitation response. IMPORTANT: you will need to pass the invitationId through the invitation link.
 
-```javascript
-ApiResultEnum Playnomics.instance.invitationResponse(
-    long invitationId,
-    string recipientUserId)
+```objectivec
++ (PNAPIResult) invitationResponseWithId: (signed long long) invitationId
+                         recipientUserId: (NSString *) recipientUserId
+                            responseType: (PNResponseType) responseType;
 ```
 <table>
     <thead>
@@ -728,40 +721,54 @@ ApiResultEnum Playnomics.instance.invitationResponse(
     <tbody>
         <tr>
             <td><code>invitationId</code></td>
-            <td>long</td>
+            <td>singed long long</td>
             <td>The ID of the corresponding <code>invitationSent</code> event.</td>
         </tr>
         <tr>
             <td><code>recipientUserId</code></td>
-            <td>string</td>
+            <td>NSString *</td>
             <td>The <code>recipientUserID</code> used in the corresponding <code>invitationSent</code> event.</td>
+        </tr>
+        <tr>
+            <td><code>responseType</code></td>
+            <td>PNResponseType</td>
+            <td>
+                Currently the only response PlayRM tracks acceptance
+                <ul>
+                    <li>PNResponseTypeAccepted</li>
+                </ul>
+            </td>
         </tr>
     </tbody>
 </table>
 
-Example calls for a user’s invitation and the recipient’s acceptance:
+Example calls for a player’s invitation and the recipient’s acceptance:
 
-```csharp
-var invitationId = 112345675;
-var recipientUserId = 10000013;
+```objective
+long invitationId = 112345675;
+NSString* recipientUserId = @"10000013";
 
-Playnomics.instance.invitationSent(invitationId, recipientUserId, null, null);
+PNAPIResult sentResult = [PlaynomicsSession invitationSentWithId: invitationId
+                                    recipientUserId: recipientUserId
+                                    recipientAddress: nil 
+                                    method: nil];
 
 //later on the recipient accepts the invitation
 
-Playnomics.instance.invitationResponse(invitationId, recipientUserId, "accepted");
+PNAPIResult responseResult = [PlaynomicsSession invitationResponseWithId: invitationId
+                                    recipientUserId: recipientUserId
+                                    responseType: PNResponseTypeAccepted];
 ```
 
 ## Custom Event Tracking
 
 Milestones may be defined in a number of ways.  They may be defined at certain key gameplay points like, finishing a tutorial, or may they refer to other important milestones in a player's lifecycle. PlayRM, by default, supports up to five custom milestones.  Players can be segmented based on when and how many times they have achieved a particular milestone.
 
-Each time a user reaches a milestone, track it with this call:
+Each time a player reaches a milestone, track it with this call:
 
-```csharp
-ApiResultEnum Playnomics.instance.milestone(
-    long milestoneId,
-    string milestoneName);
+```objectivec
++ (PNAPIResult) milestoneWithId: (signed long long) milestoneId
+                        andName: (NSString *) milestoneName;
 ```
 <table>
     <thead>
@@ -774,13 +781,18 @@ ApiResultEnum Playnomics.instance.milestone(
     <tbody>
         <tr>
             <td><code>milestoneId</code></td>
-            <td>long</long>
-            <td>a unique 64-bit numeric identifier for this milestone occurrence</td>
+            <td>signed long long</long>
+            <td>
+                A unique 64-bit numeric identifier for this milestone occurrence.
+            </td>
         </tr>
         <tr>
             <td><code>milestoneName</code></td>
-            <td>string</td>
-            <td>the name of the milestone which should be one of "TUTORIAL" or "CUSTOMn", where n is 1 through 5</td>
+            <td>NSString *</td>
+            <td>
+                The name of the milestone, which should be one of "TUTORIAL" or "CUSTOMn", where n is 1 through 5.
+                The name is case-sensitive.
+            </td>
         </tr>
     </tbody>
 </table>
@@ -927,7 +939,7 @@ In this use-case, we want to configure a frame that is always shown to players w
             </td>
             <td>1st</td>
             <td>
-                In this case, we're be worried that one once-active players are now in danger of leaving the game. We might offer them <strong>50 MonsterBucks</strong> to bring them back.
+                In this case, we're worried once-active players are now in danger of leaving the game. We might offer them <strong>50 MonsterBucks</strong> to bring them back.
             </td>
             <td>
                 <img src="http://playnomics.com/integration-dev/img/messaging/50-free-monster-bucks.png"/>
@@ -939,7 +951,7 @@ In this use-case, we want to configure a frame that is always shown to players w
             </td>
             <td>2nd</td>
             <td>
-                In this case, we want to thank the player from coming back and incentivize these lapsed players to continue doing so. We might offer them <strong>10 MonsterBucks</strong> to increase their engagement and loyalty.
+                In this case, we want to thank the player for coming back and incentivize these lapsed players to continue doing so. We might offer them <strong>10 MonsterBucks</strong> to increase their engagement and loyalty.
             </td>
             <td> 
                 <img src="http://playnomics.com/integration-dev/img/messaging/10-free-monster-bucks.png"/>
@@ -992,9 +1004,9 @@ The related messages would be configured in the Control Panel to use this callba
 
 ### Event Driven Frame - Open the Store
 
-An advantage of a *dynamic* frame, is that it can be triggered based on an in-game event. For each in-game event you would configure a separate frame. While segmentation maybe helpful in deciding what message you show, it may be sufficient to show the same message to all players.
+An advantage of a *dynamic* frames is that they can be triggered by in-game events. For each in-game event you would configure a separate frame. While segmentation may be helpful in deciding what message you show, it may be sufficient to show the same message to all players.
 
-In particular one event, a player may spend through their premium currency and you want to remind them that they can re-up through your store. In the context, we show the same message to all players.
+In particular one event, for examle, a player may deplete their premium currency and you want to remind them that they can re-up through your store. In this context, we display the same message to all players.
 
 <table>
     <thead>
@@ -1051,7 +1063,7 @@ The Default message would be configured in the Control Panel to use this callbac
 
 ### Event Driven Frame - Level Completion
 
-Another in-game event, we want to show a segmented message to players after they complete a level or challenge. In this case, we're trying to receive some revenue from players unlikely to monetized.
+In the following example, we wish to generate third-party revenue from players unlikely to monetize by showing them a segmented message after completing a level or challenge: 
 
 <table>
     <thead>
@@ -1105,7 +1117,7 @@ public class MessageClickHandler : MonoBehavior {
     //...
 
     public void grantMana(){
-        //grant mana to the user
+        //grant mana to the player
     }
 
     //...
