@@ -41,6 +41,7 @@ Outline
     * [Setting up a Frame](#setting-up-a-frame)
     * [SDK Integration](#sdk-integration)
     * [Using Code Callbacks](#using-code-callbacks)
+* [Push Notifications](#push-notifications)
 * [Support Issues](#support-issues)
 
 Prerequisites
@@ -161,11 +162,8 @@ You **MUST** make the initialization call before working with any other PlayRM m
 ```objectivec
 #import "AppDelegate.h"
 #import "PlaynomicsSession.h"
-@implementation AppDelegate
 
-//...
-//...
-//...
+@implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -745,7 +743,7 @@ You can then track each invitation response. IMPORTANT: you will need to pass th
 Example calls for a player’s invitation and the recipient’s acceptance:
 
 ```objective
-long invitationId = 112345675;
+int invitationId = 112345675;
 NSString* recipientUserId = @"10000013";
 
 PNAPIResult sentResult = [PlaynomicsSession invitationSentWithId: invitationId
@@ -787,10 +785,10 @@ Each time a player reaches a milestone, track it with this call:
             </td>
         </tr>
         <tr>
-            <td><code>milestoneName</code></td>
+            <td><code>andName</code></td>
             <td>NSString *</td>
             <td>
-                The name of the milestone, which should be one of "TUTORIAL" or "CUSTOMn", where n is 1 through 5.
+                The name of the milestone, which should be "TUTORIAL" or "CUSTOMn", where n is 1 through 5.
                 The name is case-sensitive.
             </td>
         </tr>
@@ -799,24 +797,13 @@ Each time a player reaches a milestone, track it with this call:
 
 Example client-side calls for a player reaching a milestone, with generated IDs:
 
-```csharp
-long GetRandomLong(){
-  var rnd = new System.Random();
-    var buffer = new byte[8];
-    rnd.NextBytes(buffer);
-    return BitConverter.ToInt64(buffer, 0);
-}
-
-//...
-//...
-//...
-
+```objectivec
 //when the player completes the tutorial
-var milestoneTutorialId = GetRandomLong();
+int milestoneTutorialId = arc4random();
 pnMilestone(milestoneTutorialId, "TUTORIAL");
 
 //when milestone CUSTOM2 is reached
-var milestoneCustom2Id = GetRandomLong();
+int milestoneCustom2Id = arc4random();
 pnMilestone(milestoneCustom2Id, "CUSTOM2");
 ```
 
@@ -830,10 +817,31 @@ Once you have all of your frames created with their associated `<PLAYRM-FRAME-ID
 
 ## SDK Integration
 
+To work with, the messaging you'll need to import the appropriate header files into your UIViewController header file. Notice that your UIViewController, 
+
+```objectivec
+#import <UIKit/UIKit.h>
+#import "PlaynomicsSession.h"
+#import "PlaynomicsFrame.h"
+#import "PlaynomicsMessaging.h"
+
+@interface ViewController : UIViewController <UITextFieldDelegate>
+{
+    @private
+    PlaynomicsFrame frame;
+}
+```
+
+Then you need to obtain a reference to the `PlaynomicsMessaging` singleton:
+
+```objectivec
+PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
+```
+
 Loading frames through the SDK:
 
 ```csharp
-MessagingFrame Playnomics.instance.initMessagingFrame(string frameId);
+- (PlaynomicsFrame *) initFrameWithId:(NSString *)frameId;
 ```
 <table>
     <thead>
@@ -852,39 +860,26 @@ MessagingFrame Playnomics.instance.initMessagingFrame(string frameId);
     </tbody>
 </table>
 
-Frames are loaded asynchronously to keep your game responsive. The `initMessagingFrame` call begins the frame loading process. However, until you call `show` on the frame, the frame will not be drawn in the UI. This gives you control over when a frame will appear.
+Frames are loaded asynchronously to keep your game responsive. The `initFrameWithId` call begins the frame loading process. However, until you call `start` on the frame, the frame will not be drawn in the UI. This gives you control over when a frame will appear. Frames are destroyed on a ViewController transition or when closed.
 
-If a frame or its image components cannot be loaded, the SDK will attempt to reloaded the frame.
+In the example below, we initialize the frame when view is visible and then show it in another event delegate.
 
-Frames are destroyed on a scene transition or when closed.
+In practice, a frame can be loaded in a variety of ways.
 
-In the example below, we initialize the frame when a behavior script is loaded for the first time. In the update loop, we poll for the frame asking if it can be shown loading and then show it. In practice, a frame can be loaded in a variety of ways.
+```objectivec
+#import "ViewController.h"
 
-```csharp
-using PlaynomicsPlugin;
-using UnityEngine;
- 
-public class Scene : MonoBehavior {
-    private MessagingFrame frame;
-    private bool shown;  
- 
-    private void Awake(){
-        //Playnomics.instance.start has already been called before we call this method
-        const string frameId = "<PLAYRM-FRAME-ID>";
-        MessagingFrame frame = Playnomics.instance.initMessagingFrame(frameId);
-        //enabled code callbacks, eg PNA   
-        frame.EnableAdCode = true;  
+@implementation ViewController
+
+    - (void)viewDidLoad
+    {
+        PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
+        frame = [messaging initWithFrameId: @"<PLAY-FRAME-ID>"];
     }
 
-    private void Update(){
-
-        if(frame.FrameState == FrameStateEnum.Loaded && !shown){
-            //the frame is ready and has never been shown
-
-            shown = true;
-            //render the frame
-            frame.show();
-        }
+    -void someOtherEvent()
+    {
+        frame.start();
     }
 }
 ```
@@ -893,15 +888,14 @@ public class Scene : MonoBehavior {
 
 Depending on your configuration, a variety of actions can take place when a frame's message is pressed or clicked:
 
-* Redirect the player to a web URL in the platform's browser application
-* Firing a code callback in your game
-* Or in the simplest case, just close the frame, provided that the Close Button has been configured correctly.
+* Redirect the player to a web URL in Safari
+* Fire a code callback in your game
+* Or in the simplest case, just close, provided that the **Close Button** has been configured correctly.
 
-All of this setup, takes place at the the time of the messaging campaign configuration. However, all code callbacks need to be configured before PlayRM can interact with it. The SDK uses Unity's messaging passing framework for callbacks, so a code callback must be:
+All of this setup, takes place at the the time of the messaging campaign configuration. However, all code callbacks need to be configured before PlayRM can interact with them. The SDK uses a NSObject delegate, the `respondsToSelector` method to find and verify the delegate callback method exists, and finally uses `performSelector` to run your callback. 
 
-* In a script attached to a singular, uniquely-named `GameObject`
-* The script method should have no parameters
-* The method should return `void`
+* The callback cannot accept any parameters. 
+* It should return `void`.
 
 Here are three common use cases for frames and a messaging campaigns
 
@@ -909,7 +903,14 @@ Here are three common use cases for frames and a messaging campaigns
 * [Event Driven Frame - Open the Store](#event-driven-frame-open-the-store) for instance, when the player is running low on premium currency
 * [Event Driven Frame - Level Completion](#event-driven-drame-level-completion)
 
-For each of the examples, we will create a script to handle the code callback, and attach it to the `GameObject` called **ClickHandler**.
+For each of the examples, we will attach our callback to the ViewController implementation from the previous information
+
+```objectivec
+PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
+//this is setting the delegate to the UIViewController class that the frame is running in
+//all callbacks will be configured here
+messaging.delegate = self;
+```
 
 ### Game Start Frame
 
@@ -972,35 +973,41 @@ In this use-case, we want to configure a frame that is always shown to players w
     </tbody>
 </table>
 
-```csharp
-using UnityEngine;
+```objectiveC
+#import <UIKit/UIKit.h>
+#import "PlaynomicsSession.h"
+#import "PlaynomicsFrame.h"
+#import "PlaynomicsMessaging.h"
 
-public class MessageClickHandler : MonoBehavior {
-    
-    //...
-    //...
-
-    public void grant10MonsterBucks(){
-        //grant 10 MonsterBucks
-    }
-
-    public void grant50MonsterBucks(){
-        //grant 50 MonsterBucks
-    } 
-
-    public void grantBazooka(){
-        //grant a bazooka
-    }
+@interface ViewController : UIViewController <UITextFieldDelegate>
+{
+    @private
+    PlaynomicsFrame frame;
 
     //...
     //...
 }
+
+//grant 10 MonsterBucks
+- (void) grant10MonsterBucks;
+
+//grant 50 MonsterBucks
+- (void) grant50MonsterBucks;
+
+//grant a bazooka
+- (void) grantBazooka;
+
+//...
+//...
+
+@end
 ```
+
 The related messages would be configured in the Control Panel to use this callback by placing this in the **Target URL** for each message :
 
-* **At-Risk Message** : `pna://ClickHandler.grant50MonsterBucks`
-* **Lapsed 7 or more days** : `pna://ClickHandler.grant10MonsterBucks`
-* **Default** : `pna://ClickHandler.grantBazooka`
+* **At-Risk Message** : `pnx://grant50MonsterBucks`
+* **Lapsed 7 or more days** : `pnx://grant10MonsterBucks`
+* **Default** : `pnx://grantBazooka`
 
 ### Event Driven Frame - Open the Store
 
@@ -1041,25 +1048,31 @@ In particular one event, for examle, a player may deplete their premium currency
     </tbody>
 </table>
 
-```csharp
-using UnityEngine;
+```objectiveC
+#import <UIKit/UIKit.h>
+#import "PlaynomicsSession.h"
+#import "PlaynomicsFrame.h"
+#import "PlaynomicsMessaging.h"
 
-public class MessageClickHandler : MonoBehavior {
-    
-    //...
-    //...
-
-    public void openStore(){
-        //open the game store after the press or click has occurred
-        store.open();
-    }
+@interface ViewController : UIViewController <UITextFieldDelegate>
+{
+    @private
+    PlaynomicsFrame frame;
 
     //...
-    //... 
+    //...
 }
+
+//open the store
+- (void) openStore;
+
+//...
+//...
+
+@end
 ```
 
-The Default message would be configured in the Control Panel to use this callback by placing this in the **Target URL** for the message : `pna://ClickHandler.openStore`.
+The Default message would be configured in the Control Panel to use this callback by placing this in the **Target URL** for the message : `pnx://ClickHandler.openStore`.
 
 ### Event Driven Frame - Level Completion
 
@@ -1108,26 +1121,39 @@ In the following example, we wish to generate third-party revenue from players u
     </tbody>
 </table>
 
-```csharp
-using UnityEngine;
+```objectiveC
+#import <UIKit/UIKit.h>
+#import "PlaynomicsSession.h"
+#import "PlaynomicsFrame.h"
+#import "PlaynomicsMessaging.h"
 
-public class MessageClickHandler : MonoBehavior {
-    
+@interface ViewController : UIViewController <UITextFieldDelegate>
+{
+    @private
+    PlaynomicsFrame frame;
+
     //...
     //...
-
-    public void grantMana(){
-        //grant mana to the player
-    }
-
-    //...
-    //... 
 }
+
+//open the store
+- (void) grantMana;
+
+//...
+//...
+
+@end
 ```
+
 The related messages would be configured in the Control Panel to use this callback by placing this in the **Target URL** for each message :
 
 * **Non-monetizers, in their 5th day of game play** : `HTTP URL for Third Party Ad`
-* **Default** : `pna://ClickHandler.grantMana`
+* **Default** : `pnx://ClickHandler.grantMana`
+
+Push Notifications
+==================
+
+
 
 Support Issues
 ==============
