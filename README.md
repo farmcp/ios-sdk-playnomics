@@ -1,25 +1,8 @@
 Playnomics PlayRM iOS SDK Integration Guide
 =============================================
-This guide showcases the features of the PlayRM iOS SDK and shows how to integrate the SDK within your game. Our SDK provides game publishers with tools for tracking player behavior and engagement so that they can:
-
-* Better understand and segment their audience
-* Reach out to new like-minded players
-* Retain their current audience
-* Ultimately generate more revenue for their games
+If you're new to PlayRM or don't yet have an account with <a href="http://www.playnomics.com">Playnomics</a>, please take a moment to <a href="http://integration.playnomics.com/technical/#integration-getting-started">get acquainted with PlayRM</a>.
 
 This is SDK is intended for working with native iOS games built with Xcode, if you're using Unity and deploying your game to iOS, please refer to the <a target="_blank" href="https://github.com/playnomics/unity-sdk#playnomics-playrm-unity-sdk-integration-guide">PlayRM Unity SDK</a>.
-
-Integration of the PlayRM SDK into an existing or brand new iOS game involves registering your game with the PlayRM service and properly configuring the SDK. The SDK communicates with the PlayRM RESTful API, and the events are processed and aggregated for your PlayRM Dashboard in the control panel.
-
-The SDK includes several modules which track different player behaviors and actions. The first two modules are initialized at or near the beginning of the play session, and the other modules are event-driven.
-
-* [Engagement Module](#installing-the-sdk) - collects geographic and engagement information
-* [User Info Module](#demographics-and-install-attribution) - provides basic user information
-* [Monetization Module](#monetization) - tracks various monetization events
-* [Viralility Module](#invitations-and-virality) - tracks the social activities of users
-* [Milestone Module](#custom-event-tracking) - tracks pre-defined significant events in the game experience
-
-The [engagement module](#installing-the-sdk) is available upon install and will automatically start running.
 
 Outline
 =======
@@ -44,17 +27,6 @@ Outline
 * [Push Notifications](#push-notifications)
 * [Support Issues](#support-issues)
 
-Prerequisites
-=============
-Before you can integrate with the PlayRM SDK you'll need to sign up and register your game.
-
-## Signing Up for the PlayRM Service
-
-Visit <a href="https://controlpanel.playnomics.com/signup" target="_blank">https://controlpanel.playnomics.com/signup</a> to create an account. The control panel is the dashboard to manage PlayRM features once the SDK integration is completed.
-
-## Register Your Game
-After receiving a registration confirmation email, login to the <a href="https://controlpanel.playnomics.com" target="_blank">control panel</a>. Select the "Applications" tab and create a new application. Your application will be granted an Application ID (`<APPID>`) and an API KEY.
-
 Basic Integration
 =================
 
@@ -67,7 +39,6 @@ You can download the SDK by forking this repo or downloading the archived files.
 * PlaynomicsSession.h
 
 Then import the SDK files into your existing game through Xcode:
-
 
 
 ### Interacting with PlayRM in Your Game
@@ -206,6 +177,17 @@ If any of the parameters are not available, you should pass `nil`.
     </thead>
     <tbody>
         <tr>
+            <td>
+                <code>type</code>
+            </td>
+            <td>
+                PNUserInfoType
+            </td>
+            <td>
+                There is currently only one option available for this: <strong>PNUserInfoTypeUpdate</strong> for userInfo updates.
+            </td>
+        </tr>
+        <tr>
             <td><code>country</code></td>
             <td>NSString *</td>
             <td>This has been deprecated. Just pass <code>nil</code>.</td>
@@ -291,7 +273,7 @@ This method is overloaded, with the ability to use an enum for the source
                     <li>PNUserInfoSourceAOLAds</li>
                     <li>PNUserInfoSourceAdbrite</li>
                     <li>PNUserInfoSourceFacebookAds</li>
-                    <li>PNUserInfoSourceGoogleSearchv
+                    <li>PNUserInfoSourceGoogleSearch</li>
                     <li>PNUserInfoSourceYahooSearch</li>
                     <li>PNUserInfoSourceBingSearch</li>
                     <li>PNUserInfoSourceFacebookSearch</li>
@@ -321,7 +303,7 @@ Since PlayRM uses the game client’s IP address to determine geographic locatio
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     
-    //after you initialize the application start
+    //after you initialize the PlayRM Sessions
     NSDate *installDate = nil;
     if(isNewUser){
         installDate = [NSDate date];
@@ -442,7 +424,8 @@ This outlines how currencies are described in PlayRM iOS
                     <li><strong>PNTransactionSellService</strong>: The sale of a service to another player</li>
                     <li><strong>PNTransactionReturnService</strong>: The return of a service</li>
                     <li>
-                        <strong>PNTransactionCurrencyConvert</strong>: A conversion of currency from one form to another, usually in the form of real currency (e.g., US dollars) to virtual currency.  If the type of a transaction is CurrencyConvert, then there should be at least 2 elements in the <code>transactionCurrencies</code> array
+                        <strong>PNTransactionCurrencyConvert</strong>: A conversion of currency from one form to another, usually in the form of real currency (e.g., US dollars) to virtual currency.  If the type of a transaction is CurrencyConvert, then there should be at least 2 elements in the <code>currencyTypes</code>, 
+                        <code>currencyValues</code>, and <code>currencyCategories</code>  arrays
                     </li>
                     <li>
                         <strong>PNTransactionInitial</strong>: An initial allocation of currency and/or virtual items to a new player
@@ -551,7 +534,7 @@ NSMutableArray *currencyCategories = [NSMutableArray array];
 
 PNAPIResult result = [PlaynomicsSession transactionWithId: transactionId 
                             itemId: nil 
-                            quantity: nil
+                            quantity: 1
                             type: PNTransactionCurrencyConvert
                             otherUserId: nil
                             currencyTypes: currencyTypes
@@ -613,7 +596,7 @@ NSMutableArray *currencyCategories = [NSMutableArray array];
 
 PNAPIResult result = [PlaynomicsSession transactionWithId: transactionId 
                             itemId: nil 
-                            quantity: nil
+                            quantity: 1
                             type: PNTransactionCurrencyConvert
                             otherUserId: nil
                             currencyTypes: currencyTypes
@@ -800,11 +783,11 @@ Example client-side calls for a player reaching a milestone, with generated IDs:
 ```objectivec
 //when the player completes the tutorial
 int milestoneTutorialId = arc4random();
-pnMilestone(milestoneTutorialId, "TUTORIAL");
+[PlaynomicsSession milestoneWithId: milestoneTutorialId andName: "TUTORIAL"];
 
 //when milestone CUSTOM2 is reached
 int milestoneCustom2Id = arc4random();
-pnMilestone(milestoneCustom2Id, "CUSTOM2");
+[PlaynomicsSession milestoneWithId: milestoneCustom2Id andName: "CUSTOM2"];
 ```
 
 Messaging Integration
@@ -840,7 +823,7 @@ PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
 
 Loading frames through the SDK:
 
-```csharp
+```objectivec
 - (PlaynomicsFrame *) initFrameWithId:(NSString *)frameId;
 ```
 <table>
@@ -897,6 +880,8 @@ All of this setup, takes place at the the time of the messaging campaign configu
 * The callback cannot accept any parameters. 
 * It should return `void`.
 
+**The code callback will not fire if the Close button is pressed.**
+
 Here are three common use cases for frames and a messaging campaigns
 
 * [Game Start Frame](#game-start-frame)
@@ -928,7 +913,7 @@ In this use-case, we want to configure a frame that is always shown to players w
             <th>
                 Code Callback
             </th>
-            <th style="width:250px;">
+            <th>
                 Creative
             </th>
         </tr>
@@ -973,7 +958,7 @@ In this use-case, we want to configure a frame that is always shown to players w
     </tbody>
 </table>
 
-```objectiveC
+```objectivec
 #import <UIKit/UIKit.h>
 #import "PlaynomicsSession.h"
 #import "PlaynomicsFrame.h"
@@ -1133,13 +1118,11 @@ In the following example, we wish to generate third-party revenue from players u
     PlaynomicsFrame frame;
 
     //...
-    //...
 }
 
-//open the store
+//grant mana
 - (void) grantMana;
 
-//...
 //...
 
 @end
@@ -1155,13 +1138,11 @@ Push Notifications
 
 ## Registering for PlayRM Push Messaging
 
-To get started with PlayRM Push Messaging, your app will need to register with Apple to receive push notifications. Do this by calling the registerForRemoteNotificationTypes method on UIApplication.
+To get started with PlayRM Push Messaging, your app will need to register with Apple to receive push notifications. Do this by calling the `registerForRemoteNotificationTypes` method on UIApplication.
 
 ```objectivec
 @implementation AppDelegate
 
-//...
-//...
 //...
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -1174,7 +1155,6 @@ To get started with PlayRM Push Messaging, your app will need to register with A
     [app registerForRemoteNotificationTypes: (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
 
     //...
-    //...
 }
 ```
 
@@ -1182,7 +1162,6 @@ Once the player, authorizes push notifications from your app, you need to provid
 ```
 @implementation AppDelegate
 
-//...
 //...
 
 -(void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
@@ -1193,7 +1172,7 @@ Once the player, authorizes push notifications from your app, you need to provid
 
 ## Push Messaging Impression and Click Tracking
 
-There are 3 situations in which an iOS device can receive a Push Notificaiton
+There are 3 situations in which an iOS device can receive a Push Notification
 
 <table>
     <thead>
