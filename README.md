@@ -59,43 +59,27 @@ All public methods, except for messaging specific calls, return an enumeration `
     <tbody>
         <tr>
             <td><code>PNAPIResultSent</code></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td><code>PNAPIResultQueued</code></td>
-            <td></td>
-        </tr>
+            <td>
+                The event has been sent to PlayRM.
+            </td>
+        </tr>        
         <tr>
             <td><code>PNAPIResultAlreadyStarted</code></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td><code>PNAPIResultAlreadySwitched</code></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td><code>PNAPIResultAlreadyStopped</code></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td><code>PNAPIResultSessionResumed</code></td>
-            <td></td>
+            <td>
+                You've already started the session. [PlaynomicsSession startWithApplicationId]</code> was called unnecessarily.
+            </td>
         </tr>
         <tr>
             <td><code>PNAPIResultStartNotCalled</code></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td><code>PNAPIResultNoInternetPermission</code></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td><code>PNAPIResultMissingReqParam</code></td>
-            <td></td>
+            <td>
+                You didn't start the session. The SDK won't be able to report any data to the PlayRM RESTful API, until this has been done.
+            </td>
         </tr>
         <tr>
             <td><code>PNAPIResultFailUnkown</code></td>
-            <td></td>
+            <td>
+                An unknown exception occurred.
+            </td>
         </tr>
     </tbody>
 </table>
