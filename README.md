@@ -6,9 +6,6 @@ This is SDK is intended for working with native iOS games built with Xcode, if y
 
 Outline
 =======
-* [Prerequisites](#prerequisites)
-    * [Signing Up for the PlayRM Service](#signing-up-for-the-playrm-service)
-    * [Register Your Game](#register-your-game)
 * [Basic Integration](#basic-integration)
     * [Installing the SDK](#installing-the-sdk)
         * [Interacting with PlayRM in Your Game](interacting-with-playrm-in-your-game)
@@ -40,6 +37,7 @@ You can download the SDK by forking this repo or downloading the archived files.
 
 Then import the SDK files into your existing game through Xcode:
 
+<img src="http://integatrion.playnomics.com/img/ios/xcode-import.png"/>
 
 ### Interacting with PlayRM in Your Game
 
@@ -534,7 +532,7 @@ NSMutableArray *currencyCategories = [NSMutableArray array];
 
 PNAPIResult result = [PlaynomicsSession transactionWithId: transactionId 
                             itemId: nil 
-                            quantity: 1
+                            quantity: 0
                             type: PNTransactionCurrencyConvert
                             otherUserId: nil
                             currencyTypes: currencyTypes
@@ -596,7 +594,7 @@ NSMutableArray *currencyCategories = [NSMutableArray array];
 
 PNAPIResult result = [PlaynomicsSession transactionWithId: transactionId 
                             itemId: nil 
-                            quantity: 1
+                            quantity: 0
                             type: PNTransactionCurrencyConvert
                             otherUserId: nil
                             currencyTypes: currencyTypes
