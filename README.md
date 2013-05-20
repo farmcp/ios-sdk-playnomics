@@ -23,6 +23,7 @@ Outline
     * [Using Code Callbacks](#using-code-callbacks)
 * [Push Notifications](#push-notifications)
 * [Support Issues](#support-issues)
+* [Change Log](#change-log)
 
 Basic Integration
 =================
@@ -1235,3 +1236,28 @@ However, if you do circumvent this default behavior and show the Push Notificati
 Support Issues
 ==============
 If you have any questions or issues, please contact <a href="mailto:support@playnomics.com">support@playnomics.com</a>.
+
+Change Log
+==========
+
+## Version 8
+* Support for internal messaging
+* Added milestone module
+
+## Version 7
+* Support for new iOS hardware, iPhone 5s
+
+## Version 6
+* Improved dual support for iOS4 and iOS5+ utilizing best methods depending on runtime version
+* This build is a courtesy build provided for debugging for an unreproducible customer-reported crash that was unrelated to PlayRM code. 
+
+## Version 4
+support for iOS version 4.x
+
+## Version 3
+* Improved crash protection
+* Ability to run integrated app on the iOS simulator
+* Minor tweaks to improve connection to server
+
+## Version 2
+* First production release
