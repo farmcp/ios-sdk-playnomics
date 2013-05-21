@@ -1261,3 +1261,5 @@ support for iOS version 4.x
 
 #### Version 2
 * First production release
+
+View version tags <a href="https://github.com/playnomics/ios-sdk/tags">here</a>
