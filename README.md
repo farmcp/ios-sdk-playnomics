@@ -38,7 +38,7 @@ You can download the SDK by forking this repo or downloading the archived files.
 
 Then import the SDK files into your existing game through Xcode:
 
-<img src="http://integatrion.playnomics.com/img/ios/xcode-import.png"/>
+<img src="http://integration.playnomics.com/img/ios/xcode-import.png"/>
 
 ### Interacting with PlayRM in Your Game
 
