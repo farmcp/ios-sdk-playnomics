@@ -123,7 +123,7 @@ You **MUST** make the initialization call before working with any other PlayRM m
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    const long applicationId = <APPID>;
+    const long long applicationId = <APPID>;
 
     [PlaynomicsSession setTestMode:YES];
     [PlaynomicsSession startWithApplicationId:applicationId];
@@ -1161,7 +1161,7 @@ To get started with PlayRM Push Messaging, your app will need to register with A
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    const long applicationId = <APPID>;
+    const long long applicationId = <APPID>;
     [PlaynomicsSession startWithApplicationId:applicationId];
 
     //enable notifications
