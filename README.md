@@ -1210,6 +1210,10 @@ If you have any questions or issues, please contact <a href="mailto:support@play
 Change Log
 ==========
 
+####  Version 8.1
+* Support for push notifications
+* Minor bug fixes
+
 ####  Version 8
 * Support for internal messaging
 * Added milestone module
