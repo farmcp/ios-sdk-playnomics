@@ -17,6 +17,8 @@ Outline
         * [Purchases of Items with Premium Currency](#purchases-of-items-with-premium-currency)
     * [Invitations and Virality](#invitations-and-virality)
     * [Custom Event Tracking](#custom-event-tracking)
+    * [Validate Integration](#validate-integration)
+    * [Switch SDK to Production Mode](#switch-sdk-to-production-mode)
 * [Messaging Integration](#messaging-integration)
     * [Setting up a Frame](#setting-up-a-frame)
     * [SDK Integration](#sdk-integration)
@@ -107,7 +109,7 @@ or have PlayRM, generate a *best-effort* unique-identifier for the player:
 If you do choose to provide a `<USER-ID>`, this value should be persistent, anonymized, and unique to each player. This is typically discerned dynamically when a player starts the game. Some potential implementations:
 
 * An internal ID (such as a database auto-generated number).
-* A hash of the user’s email address.
+* A hash of the user's email address.
 
 **You cannot use the user's Facebook ID or any personally identifiable information (plain-text email, name, etc) for the `<USER-ID>`.**
 
@@ -123,13 +125,13 @@ You **MUST** make the initialization call before working with any other PlayRM m
 {
     const long applicationId = <APPID>;
 
+    [PlaynomicsSession setTestMode:YES];
     [PlaynomicsSession startWithApplicationId:applicationId];
-
     //other code to initialize the application below this
 }
 ```
 
-Once started, the SDK will automatically begin collecting basic user information (including geo-location) and engagement data.
+Once started, the SDK will automatically begin collecting basic user information (including geo-location) and engagement data in **test mode** (be sure to switch to [production mode](#switch-sdk-to-production-mode) before deploying your application).
 
 ## Demographics and Install Attribution
 
@@ -272,7 +274,7 @@ This method is overloaded, with the ability to use an enum for the source
     </tbody>
 </table>
 
-Since PlayRM uses the game client’s IP address to determine geographic location, country and subdivision should be set to `nil`.
+Since PlayRM uses the game client's IP address to determine geographic location, country and subdivision should be set to `nil`.
 
 ```objectivec
 #import "AppDelegate.h"
@@ -706,7 +708,7 @@ You can then track each invitation response. IMPORTANT: you will need to pass th
     </tbody>
 </table>
 
-Example calls for a player’s invitation and the recipient’s acceptance:
+Example calls for a player's invitation and the recipient's acceptance:
 
 ```objective
 int invitationId = 112345675;
@@ -772,6 +774,35 @@ int milestoneTutorialId = arc4random();
 int milestoneCustom2Id = arc4random();
 [PlaynomicsSession milestoneWithId: milestoneCustom2Id andName: "CUSTOM2"];
 ```
+## Validate Integration
+After configuring your selected PlayRM modules, you should verify your application's correct integration with the self-check validation service.
+
+Simply visit the self-check page for your application: **`https://controlpanel.playnomics.com/validation/<APPID>`**
+
+You can now  see the most recent event data sent by the SDK, with any errors flagged. Visit the  <a href="http://integration.playnomics.com/technical/#self-check">self-check validation guide</a> for more information.
+
+We strongly recommend running the self-check validator before deploying your newly integrated application to production.
+
+## Switch SDK to Production Mode
+Once you have [validated](#validate-integration) your integration, switch the SDK from **test** to **production** mode by simply setting the `PlaynomicsSession`'s `setTestMode` field to `NO` (or by removing/commenting out the call entirely).
+
+
+```objectivec
+//...
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+    //...
+    [PlaynomicsSession setTestMode:NO];
+    [PlaynomicsSession startWithApplicationId:applicationId];
+    //...
+}
+```
+If you ever wish to test or troubleshoot your integration later on, simply set `setTestMode` back to `YES` and revisit the self-check validation tool for your application:
+
+**`https://controlpanel.playnomics.com/validation/<APPID>`**
+
+
 
 Messaging Integration
 =====================
