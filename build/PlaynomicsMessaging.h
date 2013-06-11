@@ -5,20 +5,20 @@
 #import "PlaynomicsFrame.h"
 
 /**
-* Protocol describing the methods an ad click action delegate should handle
-*/
+ * Protocol describing the methods an ad click action delegate should handle
+ */
 @protocol PNAdClickActionHandler
 
 // Called on the delegate to perform some action when the ad is clicked by the user
-- (void)performAction;
+- (void)performActionOnAdClicked;
 
 @end
 
 
 /**
-* Central messaging class used to generate ad frames and register click handlers
-*
-*/
+ * Central messaging class used to generate ad frames and register click handlers
+ *
+ */
 @interface PlaynomicsMessaging : NSObject
 
 // The delegate all Playnomics Execution calls will be forwarded to.  Only one execution delegate can be

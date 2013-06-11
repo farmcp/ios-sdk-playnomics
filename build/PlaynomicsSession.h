@@ -10,12 +10,13 @@
 #import <UIKit/UIKit.h>
 
 
-/** 
+/**
  *  PNAPIResult
  *
  *  Possible results for PlaynomicsSession messages
  */
 typedef enum {
+    PNAPIResultNotSent,
     PNAPIResultSent,
     PNAPIResultQueued,
     PNAPIResultSwitched,
@@ -31,7 +32,7 @@ typedef enum {
 } PNAPIResult;
 
 
-/** 
+/**
  *  PNResponseType
  *
  *  Possible responses for the invitations/SocialEvents
@@ -62,7 +63,7 @@ typedef enum {
 
 /**
  *  PNCurrencyCategory
- *  
+ *
  *  Possible currency Categories for transactions
  */
 typedef enum {
@@ -133,7 +134,7 @@ typedef enum {
 
 /**
  * Change User.
- * 
+ *
  * @param userId
  *            the user id
  * @return the API Result
@@ -142,7 +143,7 @@ typedef enum {
 
 /**
  * Start.
- * 
+ *
  * @param applicationId
  *            the application id
  * @param userId
@@ -154,7 +155,7 @@ typedef enum {
 
 /**
  * Start.
- * 
+ *
  * @param applicationId
  *            the application id
  * @return the API Result
@@ -163,7 +164,7 @@ typedef enum {
 
 /**
  * Stop.
- * 
+ *
  * @return the API Result
  */
 + (PNAPIResult) stop;
@@ -183,7 +184,7 @@ typedef enum {
 @interface PlaynomicsSession (Events)
 /**
  * User info.
- * 
+ *
  * @param type
  *            the type
  * @param country
@@ -202,17 +203,17 @@ typedef enum {
  *            the install time
  * @return the API Result
  */
-+ (PNAPIResult) userInfoForType: (PNUserInfoType) type 
-                        country: (NSString *) country 
++ (PNAPIResult) userInfoForType: (PNUserInfoType) type
+                        country: (NSString *) country
                     subdivision: (NSString *) subdivision
                             sex: (PNUserInfoSex) sex
                        birthday: (NSDate *) birthday
-                         source: (PNUserInfoSource) source 
-                 sourceCampaign: (NSString *) sourceCampaign 
+                         source: (PNUserInfoSource) source
+                 sourceCampaign: (NSString *) sourceCampaign
                     installTime: (NSDate *) installTime;
 /**
  * User info.
- * 
+ *
  * @param type
  *            the type
  * @param country
@@ -231,18 +232,18 @@ typedef enum {
  *            the install time
  * @return the API Result
  */
-+ (PNAPIResult) userInfoForType: (PNUserInfoType) type 
-                        country: (NSString *) country 
++ (PNAPIResult) userInfoForType: (PNUserInfoType) type
+                        country: (NSString *) country
                     subdivision: (NSString *) subdivision
                             sex: (PNUserInfoSex) sex
                        birthday: (NSDate *) birthday
-                 sourceAsString: (NSString *) source 
-                 sourceCampaign: (NSString *) sourceCampaign 
+                 sourceAsString: (NSString *) source
+                 sourceCampaign: (NSString *) sourceCampaign
                     installTime: (NSDate *) installTime;
 
 /**
  * Session start.
- * 
+ *
  * @param sessionId
  *            the session id
  * @param site
@@ -254,7 +255,7 @@ typedef enum {
 
 /**
  * Session end.
- * 
+ *
  * @param sessionId
  *            the session id
  * @param reason
@@ -266,7 +267,7 @@ typedef enum {
 
 /**
  * Game start.
- * 
+ *
  * @param instanceId
  *            the instance id
  * @param sessionId
@@ -287,7 +288,7 @@ typedef enum {
 
 /**
  * Game end.
- * 
+ *
  * @param instanceId
  *            the instance id
  * @param sessionId
@@ -302,7 +303,7 @@ typedef enum {
 
 /**
  * Transaction.
- * 
+ *
  * @param transactionId
  *            the transaction id
  * @param itemId
@@ -332,7 +333,7 @@ typedef enum {
 
 /**
  * Transaction.
- * 
+ *
  * @param transactionId
  *            the transaction id
  * @param itemId
@@ -362,7 +363,7 @@ typedef enum {
 
 /**
  * Transaction.
- * 
+ *
  * @param transactionId
  *            the transaction id
  * @param itemId
@@ -388,11 +389,11 @@ typedef enum {
                       otherUserId: (NSString *) otherUserId
                     currencyTypes: (NSArray *) currencyTypes
                    currencyValues: (NSArray *) currencyValues
-               currencyCategories: (NSArray *) currencyCategories; 
+               currencyCategories: (NSArray *) currencyCategories;
 
 /**
  * Invitation sent.
- * 
+ *
  * @param invitationId
  *            the invitation id
  * @param recipientUserId
@@ -404,13 +405,13 @@ typedef enum {
  * @return the API Result
  */
 + (PNAPIResult) invitationSentWithId: (signed long long) invitationId
-                     recipientUserId: (NSString *) recipientUserId 
-                    recipientAddress: (NSString *) recipientAddress 
+                     recipientUserId: (NSString *) recipientUserId
+                    recipientAddress: (NSString *) recipientAddress
                               method: (NSString *) method;
 
 /**
  * Invitation response.
- * 
+ *
  * @param invitationId
  *            the invitation id
  * @param response
@@ -443,7 +444,14 @@ typedef enum {
  */
 + (PNAPIResult) enablePushNotificationsWithToken:(NSData*)deviceToken;
 
-
+/**
+ * pushNotificationsWithPayload
+ *
+ * @param payload
+ *            the dictionary that was pushed to device
+ * @return the API Result
+ */
++ (void) pushNotificationsWithPayload:(NSDictionary*)payload ;
 
 /**
  * errorReport
@@ -454,7 +462,7 @@ typedef enum {
  */
 + (PNAPIResult) errorReport:(id)errorDetails;
 
-
++(NSString*)stringForTrimmedDeviceToken:(NSData*)deviceToken;
 
 @end
 
