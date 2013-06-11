@@ -1184,34 +1184,9 @@ There are 3 situations in which an iOS device can receive a Push Notification
     </tbody>
 </table>
 
-When the device receives a push message and the player opens the app, the app needs to notify Playnomics by calling the method:
+The first situation is automatically handled by the Playnomics SDK. The other two situations, however, need to be implemented in the `didReceiveRemoteNotification` method:
 
 ```objectivec
-@implementation AppDelegate
-
-//...
-//...
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-
-    long appId = 2L;
-    [PlaynomicsSession setTestMode:NO];
-    [PlaynomicsSession startWithApplicationId:appId];
-    
-    UIApplication *app = [UIApplication sharedApplication];
-
-    [app registerForRemoteNotificationTypes: (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
-    
-    NSDictionary *apn = [launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
-    if (apn) {
-        [PlaynomicsSession pushNotificationsWithPayload:apn];
-    }
-
-    //...
-    //...
-}
-
 -(void) application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
 {
     NSMutableDictionary *payload = [userInfo mutableCopy];
@@ -1219,19 +1194,14 @@ When the device receives a push message and the player opens the app, the app ne
     [payload release];
 }
 ```
-By default, iOS does not show push notifications when your app is already in the foreground. Consequently, PlayRM does track these push notifications as impressions or clicks.
 
-However, if you do circumvent this default behavior and show the Push Notification when the app is in the foreground, you can override this functionality by modifying the code in the `didReceiveRemoteNotification` method.
+By default, iOS does not show push notifications when your app is already in the foreground. Consequently, PlayRM does NOT track these push notifications as impressions nor clicks. However, if you do circumvent this default behavior and show the Push Notification when the app is in the foreground, you can override this functionality by adding the following line of code in the `didReceiveRemoteNotification` method:
 
 ```objectivec
--(void) application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
-{
-    NSMutableDictionary *payload = [userInfo mutableCopy];
-    [payload setObject:[NSNumber numberWithBool:YES] forKey:@"pushIgnored"];
-    [PlaynomicsSession pushNotificationsWithPayload:payload];
-    [payload release];
-}
+    [payload setObject:[NSNumber numberWithBool:NO] forKey:@"pushIgnored"];
 ```
+
+This will allow each push notification to be treated as a click even if the app is in the foreground.
 
 Support Issues
 ==============
