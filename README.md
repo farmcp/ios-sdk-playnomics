@@ -756,7 +756,7 @@ Each time a player reaches a milestone, track it with this call:
             <td><code>andName</code></td>
             <td>NSString *</td>
             <td>
-                The name of the milestone, which should be "TUTORIAL" or "CUSTOMn", where n is 1 through 5.
+                The name of the milestone, which should be "CUSTOMn", where n is 1 through 5.
                 The name is case-sensitive.
             </td>
         </tr>
@@ -766,13 +766,10 @@ Each time a player reaches a milestone, track it with this call:
 Example client-side calls for a player reaching a milestone, with generated IDs:
 
 ```objectivec
-//when the player completes the tutorial
-int milestoneTutorialId = arc4random();
-[PlaynomicsSession milestoneWithId: milestoneTutorialId andName: "TUTORIAL"];
 
-//when milestone CUSTOM2 is reached
-int milestoneCustom2Id = arc4random();
-[PlaynomicsSession milestoneWithId: milestoneCustom2Id andName: "CUSTOM2"];
+//when milestone CUSTOM1 is reached
+int milestoneCustom1Id = arc4random();
+[PlaynomicsSession milestoneWithId: milestoneCustom2Id andName: "CUSTOM1"];
 ```
 ## Validate Integration
 After configuring your selected PlayRM modules, you should verify your application's correct integration with the self-check validation service.
