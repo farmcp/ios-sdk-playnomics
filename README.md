@@ -779,12 +779,12 @@ After configuring your selected PlayRM modules, you should verify your applicati
 
 Simply visit the self-check page for your application: **`https://controlpanel.playnomics.com/validation/<APPID>`**
 
-You can now  see the most recent event data sent by the SDK, with any errors flagged. Visit the  <a href="http://integration.playnomics.com/technical/#self-check">self-check validation guide</a> for more information.
+You can now see the most recent event data sent by the SDK, with any errors flagged. Visit the  <a href="http://integration.playnomics.com/technical/#self-check">self-check validation guide</a> for more information.
 
 We strongly recommend running the self-check validator before deploying your newly integrated application to production.
 
 ## Switch SDK to Production Mode
-Once you have [validated](#validate-integration) your integration, switch the SDK from **test** to **production** mode by simply setting the `PlaynomicsSession`'s `setTestMode` field to `NO` (or by removing/commenting out the call entirely).
+Once you have [validated](#validate-integration) your integration, switch the SDK from **test** to **production** mode by simply setting the `PlaynomicsSession`'s `setTestMode` field to `NO` (or by removing/commenting out the call entirely) in the initialization block:
 
 
 ```objectivec
