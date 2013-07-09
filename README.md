@@ -17,8 +17,9 @@ Outline
         * [Purchases of Items with Premium Currency](#purchases-of-items-with-premium-currency)
     * [Invitations and Virality](#invitations-and-virality)
     * [Custom Event Tracking](#custom-event-tracking)
+    * [Validate Integration](#validate-integration)
+    * [Switch SDK to Production Mode](#switch-sdk-to-production-mode)
 * [Messaging Integration](#messaging-integration)
-    * [Setting up a Frame](#setting-up-a-frame)
     * [SDK Integration](#sdk-integration)
     * [Using Code Callbacks](#using-code-callbacks)
 * [Push Notifications](#push-notifications)
@@ -107,7 +108,7 @@ or have PlayRM, generate a *best-effort* unique-identifier for the player:
 If you do choose to provide a `<USER-ID>`, this value should be persistent, anonymized, and unique to each player. This is typically discerned dynamically when a player starts the game. Some potential implementations:
 
 * An internal ID (such as a database auto-generated number).
-* A hash of the user’s email address.
+* A hash of the user's email address.
 
 **You cannot use the user's Facebook ID or any personally identifiable information (plain-text email, name, etc) for the `<USER-ID>`.**
 
@@ -121,15 +122,15 @@ You **MUST** make the initialization call before working with any other PlayRM m
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    const long applicationId = <APPID>;
+    const long long applicationId = <APPID>;
 
+    [PlaynomicsSession setTestMode:YES];
     [PlaynomicsSession startWithApplicationId:applicationId];
-
     //other code to initialize the application below this
 }
 ```
 
-Once started, the SDK will automatically begin collecting basic user information (including geo-location) and engagement data.
+Once started, the SDK will automatically begin collecting basic user information (including geo-location) and engagement data in **test mode** (be sure to switch to [production mode](#switch-sdk-to-production-mode) before deploying your application).
 
 ## Demographics and Install Attribution
 
@@ -272,7 +273,7 @@ This method is overloaded, with the ability to use an enum for the source
     </tbody>
 </table>
 
-Since PlayRM uses the game client’s IP address to determine geographic location, country and subdivision should be set to `nil`.
+Since PlayRM uses the game client's IP address to determine geographic location, country and subdivision should be set to `nil`.
 
 ```objectivec
 #import "AppDelegate.h"
@@ -706,7 +707,7 @@ You can then track each invitation response. IMPORTANT: you will need to pass th
     </tbody>
 </table>
 
-Example calls for a player’s invitation and the recipient’s acceptance:
+Example calls for a player's invitation and the recipient's acceptance:
 
 ```objective
 int invitationId = 112345675;
@@ -754,7 +755,7 @@ Each time a player reaches a milestone, track it with this call:
             <td><code>andName</code></td>
             <td>NSString *</td>
             <td>
-                The name of the milestone, which should be "TUTORIAL" or "CUSTOMn", where n is 1 through 5.
+                The name of the milestone, which should be "CUSTOMn", where n is 1 through 5.
                 The name is case-sensitive.
             </td>
         </tr>
@@ -764,14 +765,40 @@ Each time a player reaches a milestone, track it with this call:
 Example client-side calls for a player reaching a milestone, with generated IDs:
 
 ```objectivec
-//when the player completes the tutorial
-int milestoneTutorialId = arc4random();
-[PlaynomicsSession milestoneWithId: milestoneTutorialId andName: "TUTORIAL"];
 
-//when milestone CUSTOM2 is reached
-int milestoneCustom2Id = arc4random();
-[PlaynomicsSession milestoneWithId: milestoneCustom2Id andName: "CUSTOM2"];
+//when milestone CUSTOM1 is reached
+int milestoneCustom1Id = arc4random();
+[PlaynomicsSession milestoneWithId: milestoneCustom2Id andName: "CUSTOM1"];
 ```
+## Validate Integration
+After configuring your selected PlayRM modules, you should verify your application's correct integration with the self-check validation service.
+
+Simply visit the self-check page for your application: **`https://controlpanel.playnomics.com/validation/<APPID>`**
+
+You can now see the most recent event data sent by the SDK, with any errors flagged. Visit the  <a href="http://integration.playnomics.com/technical/#self-check">self-check validation guide</a> for more information.
+
+We strongly recommend running the self-check validator before deploying your newly integrated application to production.
+
+## Switch SDK to Production Mode
+Once you have [validated](#validate-integration) your integration, switch the SDK from **test** to **production** mode by simply setting the `PlaynomicsSession`'s `setTestMode` field to `NO` (or by removing/commenting out the call entirely) in the initialization block:
+
+
+```objectivec
+//...
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+    //...
+    [PlaynomicsSession setTestMode:NO];
+    [PlaynomicsSession startWithApplicationId:applicationId];
+    //...
+}
+```
+If you ever wish to test or troubleshoot your integration later on, simply set `setTestMode` back to `YES` and revisit the self-check validation tool for your application:
+
+**`https://controlpanel.playnomics.com/validation/<APPID>`**
+
+
 
 Messaging Integration
 =====================
@@ -1130,7 +1157,7 @@ To get started with PlayRM Push Messaging, your app will need to register with A
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    const long applicationId = <APPID>;
+    const long long applicationId = <APPID>;
     [PlaynomicsSession startWithApplicationId:applicationId];
 
     //enable notifications
@@ -1184,34 +1211,9 @@ There are 3 situations in which an iOS device can receive a Push Notification
     </tbody>
 </table>
 
-When the device receives a push message and the player opens the app, the app needs to notify Playnomics by calling the method:
+The first situation is automatically handled by the Playnomics SDK. The other two situations, however, need to be implemented in the `didReceiveRemoteNotification` method:
 
 ```objectivec
-@implementation AppDelegate
-
-//...
-//...
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-
-    long appId = 2L;
-    [PlaynomicsSession setTestMode:NO];
-    [PlaynomicsSession startWithApplicationId:appId];
-    
-    UIApplication *app = [UIApplication sharedApplication];
-
-    [app registerForRemoteNotificationTypes: (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
-    
-    NSDictionary *apn = [launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
-    if (apn) {
-        [PlaynomicsSession pushNotificationsWithPayload:apn];
-    }
-
-    //...
-    //...
-}
-
 -(void) application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
 {
     NSMutableDictionary *payload = [userInfo mutableCopy];
@@ -1219,19 +1221,14 @@ When the device receives a push message and the player opens the app, the app ne
     [payload release];
 }
 ```
-By default, iOS does not show push notifications when your app is already in the foreground. Consequently, PlayRM does track these push notifications as impressions or clicks.
 
-However, if you do circumvent this default behavior and show the Push Notification when the app is in the foreground, you can override this functionality by modifying the code in the `didReceiveRemoteNotification` method.
+By default, iOS does not show push notifications when your app is already in the foreground. Consequently, PlayRM does NOT track these push notifications as impressions nor clicks. However, if you do circumvent this default behavior and show the Push Notification when the app is in the foreground, you can override this functionality by adding the following line of code in the `didReceiveRemoteNotification` method:
 
 ```objectivec
--(void) application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
-{
-    NSMutableDictionary *payload = [userInfo mutableCopy];
-    [payload setObject:[NSNumber numberWithBool:YES] forKey:@"pushIgnored"];
-    [PlaynomicsSession pushNotificationsWithPayload:payload];
-    [payload release];
-}
+    [payload setObject:[NSNumber numberWithBool:NO] forKey:@"pushIgnored"];
 ```
+
+This will allow each push notification to be treated as a click even if the app is in the foreground.
 
 Support Issues
 ==============
@@ -1239,6 +1236,10 @@ If you have any questions or issues, please contact <a href="mailto:support@play
 
 Change Log
 ==========
+
+####  Version 8.1
+* Support for push notifications
+* Minor bug fixes
 
 ####  Version 8
 * Support for internal messaging
