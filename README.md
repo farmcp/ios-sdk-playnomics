@@ -1230,6 +1230,18 @@ By default, iOS does not show push notifications when your app is already in the
 
 This will allow each push notification to be treated as a click even if the app is in the foreground.
 
+## Clearing Push Badge Numbers
+
+When you send push notifications, you can configure a badge number that will be set on your application icon in the home screen. When you send push notifications, you can configure a badge number that will be set on your application. iOS defers the responsibility of resetting the badge number to the developer. 
+
+To do this, insert this code snippet in the `applicationWillResignActive` methpod of your `UIAppDelegate`
+
+```objectivec
+- (void)applicationWillResignActive:(UIApplication *)application {
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
+}
+```
+
 Support Issues
 ==============
 If you have any questions or issues, please contact <a href="mailto:support@playnomics.com">support@playnomics.com</a>.
