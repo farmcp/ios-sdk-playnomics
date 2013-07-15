@@ -834,7 +834,7 @@ PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
 Loading frames through the SDK:
 
 ```objectivec
-- (PlaynomicsFrame *) initFrameWithId:(NSString *)frameId;
+- (PlaynomicsFrame *) createFrameWithId:(NSString *)frameId;
 ```
 <table>
     <thead>
@@ -853,7 +853,7 @@ Loading frames through the SDK:
     </tbody>
 </table>
 
-Frames are loaded asynchronously to keep your game responsive. The `initFrameWithId` call begins the frame loading process. However, until you call `start` on the frame, the frame will not be drawn in the UI. This gives you control over when a frame will appear. Frames are destroyed on a ViewController transition or when closed.
+Frames are loaded asynchronously to keep your game responsive. The `createFrameWithId` call begins the frame loading process. However, until you call `start` on the frame, the frame will not be drawn in the UI. This gives you control over when a frame will appear. Frames are destroyed on a ViewController transition or when closed.
 
 In the example below, we initialize the frame when view is visible and then show it in another event delegate.
 
@@ -867,7 +867,7 @@ In practice, a frame can be loaded in a variety of ways.
     - (void)viewDidLoad
     {
         PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
-        frame = [messaging initWithFrameId: @"<PLAY-FRAME-ID>"];
+        frame = [messaging createFrameWithId: @"<PLAY-FRAME-ID>"];
     }
 
     -void someOtherEvent()
@@ -1248,6 +1248,9 @@ If you have any questions or issues, please contact <a href="mailto:support@play
 
 Change Log
 ==========
+####  Version 8.1.1
+* Renamed method in PlaynomicsMessaging.h from "initFrameWithId" to "createFrameWithId"
+* Minor bug fixes
 
 ####  Version 8.1
 * Support for push notifications

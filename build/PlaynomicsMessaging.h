@@ -34,7 +34,7 @@
 
 // Initialize a frame using data retrieved from the Playnomics Messaging Server.  The returned instance is
 // AUTORELEASED and must be retained by the clients.
-- (PlaynomicsFrame *)initFrameWithId:(NSString *)frameId;
+- (PlaynomicsFrame *)createFrameWithId:(NSString *)frameId;
 
 
 @end
