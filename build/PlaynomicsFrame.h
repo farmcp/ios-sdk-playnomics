@@ -10,6 +10,7 @@ typedef enum {
     DisplayResultUnableToConnect,  // No successful connections to the ad server have occurred
     DisplayResultFailUnknown,  // Any other problem (included bad responses from the ad server)
     DisplayResultDisplayPending,  // Ad server has been reached, but assets not ready yet, will display when ready
+    DisplayAdColony,  // Show an AdColony video ad
     DisplayResultDisplayed  // Success
 } DisplayResult;
 
@@ -24,5 +25,7 @@ typedef enum {
 
 // Called to display the ad frame and to begin capturing clicks within the frame.
 - (DisplayResult)start;
+
+- (void)sendVideoView;
 
 @end
