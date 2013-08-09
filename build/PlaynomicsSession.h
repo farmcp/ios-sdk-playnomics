@@ -170,15 +170,24 @@ typedef enum {
 + (PNAPIResult) stop;
 
 /**
- * Enables testing mode, should only be used under the direction of Playnomics Support
- *
- * @param testMode
- *             use true to enable sending data to test servers
+ * Enables testing mode
+ * @param testMode: use true to enable sending data to test servers
  */
 + (void) setTestMode: (bool) testMode;
 
+/* 
+ Check if the SDK is in test mode or not.
+*/
++ (bool) getTestMode;
 
 
++ (NSString*) getOverrideMessagingUrl;
++ (void) setOverrideMessagingUrl: (NSString*) url;
+
++ (NSString*) getOverrideEventsUrl;
++ (void) setOverrideEventsUrl: (NSString*) url;
+
++ (NSString*) getSDKVersion;
 @end
 
 @interface PlaynomicsSession (Events)

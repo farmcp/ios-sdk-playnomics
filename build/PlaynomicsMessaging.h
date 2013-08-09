@@ -8,10 +8,14 @@
  * Protocol describing the methods an ad click action delegate should handle
  */
 @protocol PNAdClickActionHandler
-
 // Called on the delegate to perform some action when the ad is clicked by the user
-- (void)performActionOnAdClicked;
+@required
+    - (void)performActionOnAdClicked;
+@end
 
+@protocol PNFrameDelegate <NSObject>
+@required
+    -(void) onClick: (NSDictionary*) jsonData;
 @end
 
 
@@ -22,7 +26,7 @@
 @interface PlaynomicsMessaging : NSObject
 
 // The delegate all Playnomics Execution calls will be forwarded to.  Only one execution delegate can be
-//   set at any given time.
+// set at any given time.
 @property (retain) id delegate;
 @property (nonatomic)BOOL isTesting;
 
@@ -35,6 +39,10 @@
 // Initialize a frame using data retrieved from the Playnomics Messaging Server.  The returned instance is
 // AUTORELEASED and must be retained by the clients.
 - (PlaynomicsFrame *)createFrameWithId:(NSString *)frameId;
+<<<<<<< HEAD
 
 
+=======
+- (PlaynomicsFrame *)createFrameWithId:(NSString*)frameId frameDelegate: (id<PNFrameDelegate>)frameDelegate;
+>>>>>>> Updating build products to version 8.3
 @end
