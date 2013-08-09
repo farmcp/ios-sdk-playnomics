@@ -860,7 +860,7 @@ Once you have all of your frames created with their associated `<PLAYRM-FRAME-ID
 
 ## SDK Integration
 
-To work with, the messaging you'll need to import the appropriate header files into your UIViewController header file. Notice that your UIViewController, 
+To work with, the messaging you'll need to import the appropriate header files into your UIViewController header file. 
 
 ```objectivec
 #import <UIKit/UIKit.h>
@@ -897,8 +897,35 @@ Loading frames through the SDK:
     <tbody>
         <tr>
             <td>frameId</td>
-            <td>string</td>
+            <td>NSString*</td>
             <td>Unique identifier for the frame.</td>
+        </tr>
+    </tbody>
+</table>
+
+Optionally, associate a class that can response to PNFrameDelegate protocol, to process rich data callbacks. See [Using Rich Data Callbacks](#using-rich-data-callbacks) for more information.
+
+```objectivec
+- (PlaynomicsFrame *)createFrameWithId:(NSString*)frameId frameDelegate: (id<PNFrameDelegate>)frameDelegate;
+```
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>frameId</td>
+            <td><code>NSString*</code></td>
+            <td>Unique identifier for the frame.</td>
+        </tr>
+        <tr>
+            <td>frameDelegate</td>
+            <td><code>id&lt;PNFrameDelegate&gt;</code></td>
+            <td></td>
         </tr>
     </tbody>
 </table>
@@ -913,34 +940,36 @@ In practice, a frame can be loaded in a variety of ways.
 #import "ViewController.h"
 
 @implementation ViewController
-{
-    - (void)viewDidLoad
-    {
-        PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
-        frame = [messaging createFrameWithId: @"<PLAY-FRAME-ID>"];
-    }
-
-    -void someOtherEvent()
-    {
-        [frame.start];
-    }
+- (void)viewDidLoad{
+    PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
+    frame = [messaging createFrameWithId: @"<PLAY-FRAME-ID>"];
 }
+
+-void someOtherEvent{
+    [frame.start];
+}
+@end
 ```
 
-## Using Code Callbacks
+## Using Rich Data Callbacks
 
 Depending on your configuration, a variety of actions can take place when a frame's message is pressed or clicked:
 
 * Redirect the player to a web URL in Safari
-* Fire a code callback in your game
+* Firing a Rich Data callback in your game
 * Or in the simplest case, just close, provided that the **Close Button** has been configured correctly.
 
-All of this setup, takes place at the the time of the messaging campaign configuration. However, all code callbacks need to be configured before PlayRM can interact with them. The SDK uses a NSObject delegate, the `respondsToSelector` method to find and verify the delegate callback method exists, and finally uses `performSelector` to run your callback. 
+Rich Data is a JSON message that you associate with your message creative. When the player presses the message, the PlayRM SDK bubbles-up the associated JSON object to an object that can respond to the protocol, `PNFrameDelegate`, associated with the frame.
 
-* The callback cannot accept any parameters. 
-* It should return `void`.
+```objectiveC
+@protocol PNFrameDelegate <NSObject>
+@required
+    -(void) onClick: (NSDictionary*) jsonData;
+@end
+```
+The actual contents of your message can be delayed until the time of the messaging campaign configuration. However, the structure of your message needs to be decided before you can process it in your game. 
 
-**The code callback will not fire if the Close button is pressed.**
+**The Rich Data callback will not fire if the Close button is pressed.**
 
 Here are three common use cases for frames and a messaging campaigns
 
@@ -948,14 +977,6 @@ Here are three common use cases for frames and a messaging campaigns
 * [Event Driven Frame - Open the Store](#event-driven-frame-open-the-store) for instance, when the player is running low on premium currency
 * [Event Driven Frame - Level Completion](#event-driven-drame-level-completion)
 
-For each of the examples, we will attach our callback to the ViewController implementation from the previous information
-
-```objectivec
-PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
-//this is setting the delegate to the UIViewController class that the frame is running in
-//all callbacks will be configured here
-messaging.delegate = self;
-```
 
 ### Game Start Frame
 
@@ -1019,40 +1040,86 @@ In this use-case, we want to configure a frame that is always shown to players w
 </table>
 
 ```objectivec
-#import <UIKit/UIKit.h>
-#import "PlaynomicsSession.h"
-#import "PlaynomicsFrame.h"
+//AwardFrameDelegate.h
+
+#import <Foundation/Foundation.h>
 #import "PlaynomicsMessaging.h"
+@interface AwardFrameDelegate : NSObject<PNFrameDelegate>
+@end
 
-@interface ViewController : UIViewController <UITextFieldDelegate>
-{
-    @private
-    PlaynomicsFrame frame;
+//AwardFrameDelegate.m
 
-    //...
-    //...
+#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+#import "AwardFrameDelegate.h"
+#import "Inventory.h"
+
+@implementation AwardFrameDelegate
+- (void)onClick:(NSDictionary *)jsonData{
+    if([data objectForKey: @"type"] != (id)[NSNull null] && [[data objectForKey:@"type"] isEqualToString: @"award"]){
+        if([data objectForKey: @"award"] != (id)[NSNull null]){
+            NSDictionary* award = [data objectForKey: @"award"];
+            
+            NSString* item = [award objectForKey: @"item"];
+            NSNumber* quantity = [award objectForKey: @"quantity"];
+
+            //call your own inventory object
+            [[Inventory sharedInstanced] addItem:item andQuantity: quanity];
+        }
+    }
 }
-
-//grant 10 MonsterBucks
-- (void) grant10MonsterBucks;
-
-//grant 50 MonsterBucks
-- (void) grant50MonsterBucks;
-
-//grant a bazooka
-- (void) grantBazooka;
-
-//...
-//...
-
 @end
 ```
 
-The related messages would be configured in the Control Panel to use this callback by placing this in the **Target URL** for each message :
+And then attaching this AwardFrameDelegate class to the frame shown in the first game scene:
 
-* **At-Risk Message** : `pnx://grant50MonsterBucks`
-* **Lapsed 7 or more days** : `pnx://grant10MonsterBucks`
-* **Default** : `pnx://grantBazooka`
+```objectiveC
+-void viewDidLoad{
+    PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
+    AwardFrameDelegate* awardDelegate = [[AwardFrameDelegate alloc] init];
+    PlaynomicsFrame* frame = [messaging createFrameWithId : frameId frameDelegate : frameDelegate];
+    [frame start];
+    [frameDelegate awardDelegate];
+}
+```
+
+The related messages would be configured in the Control Panel to use this callback by placing this in the **Target Data** for each message:
+
+Grant 10 Monster Bucks
+```json
+{
+    "type" : "award",
+    "award" : 
+    {
+        "item" : "MonsterBucks",
+        "quantity" : 10
+    }
+}
+```
+
+Grant 50 Monster Bucks
+```json
+{
+    "type" : "award",
+    "award" : 
+    {
+        "item" : "MonsterBucks",
+        "quantity" : 50
+    }
+}
+```
+
+Grant Bazooka
+```json
+{
+    "type" : "award",
+    "award" :
+    {
+        "item" : "Bazooka",
+        "quantity" : 1
+    }
+}
+```
 
 ### Event Driven Frame - Open the Store
 
@@ -1093,31 +1160,40 @@ In particular one event, for examle, a player may deplete their premium currency
     </tbody>
 </table>
 
-```objectiveC
-#import <UIKit/UIKit.h>
-#import "PlaynomicsSession.h"
-#import "PlaynomicsFrame.h"
+```objectivec
+//StoreFrameDelegate.h
+
+#import <Foundation/Foundation.h>
 #import "PlaynomicsMessaging.h"
+@interface StoreFrameDelegate : NSObject<PNFrameDelegate>
+@end
 
-@interface ViewController : UIViewController <UITextFieldDelegate>
-{
-    @private
-    PlaynomicsFrame frame;
+//StoreFrameDelegate.m
 
-    //...
-    //...
+#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+#import "StoreFrameDelegate.h"
+#import "Inventory.h"
+
+@implementation StoreFrameDelegate
+- (void)onClick:(NSDictionary *)jsonData{
+    if([data objectForKey: @"type"] != (id)[NSNull null] && [[data objectForKey:@"type"] isEqualToString: @"action"]){
+        if([data objectForKey: @"action"] != (id)[NSNull null] && [[data objectForKey:@"type"] isEqualToString: @"openStore"]){
+            [[Store sharedInstance] open];
+        }
+    }
 }
-
-//open the store
-- (void) openStore;
-
-//...
-//...
-
 @end
 ```
 
-The Default message would be configured in the Control Panel to use this callback by placing this in the **Target URL** for the message : `pnx://ClickHandler.openStore`.
+The Default message would be configured in the Control Panel to use this callback by placing this in the **Target Data** for the message :
+
+```json
+{
+    "type" : "action",
+    "action" : "openStore"
+}
+```
 
 ### Event Driven Frame - Level Completion
 
@@ -1166,33 +1242,21 @@ In the following example, we wish to generate third-party revenue from players u
     </tbody>
 </table>
 
-```objectiveC
-#import <UIKit/UIKit.h>
-#import "PlaynomicsSession.h"
-#import "PlaynomicsFrame.h"
-#import "PlaynomicsMessaging.h"
+This another continuation on the `AwardFrameDelegate`, with some different data. The related messages would be configured in the Control Panel:
 
-@interface ViewController : UIViewController <UITextFieldDelegate>
+* **Non-monetizers, in their 5th day of game play**, a Target URL: `HTTP URL for Third Party Ad`
+* **Default**, Target Data:
+
+```json
 {
-    @private
-    PlaynomicsFrame frame;
-
-    //...
+    "type" : "award",
+    "award" :
+    {
+        "item" : "Mana",
+        "quantity" : 20
+    }
 }
-
-//grant mana
-- (void) grantMana;
-
-//...
-
-@end
 ```
-
-The related messages would be configured in the Control Panel to use this callback by placing this in the **Target URL** for each message :
-
-* **Non-monetizers, in their 5th day of game play** : `HTTP URL for Third Party Ad`
-* **Default** : `pnx://grantMana`
-
 Push Notifications
 ==================
 
