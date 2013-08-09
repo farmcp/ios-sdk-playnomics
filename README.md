@@ -1362,6 +1362,11 @@ If you have any questions or issues, please contact <a href="mailto:support@play
 
 Change Log
 ==========
+#### Version 9
+* Adding support for Rich Data Callbacks
+* Targeting the arm7, arm7s, i386 CPU Arcitectures
+* Now compatible with iOS 5 and above
+
 ####  Version 8.2
 * Support for video ads
 * Capture advertising tracking information
