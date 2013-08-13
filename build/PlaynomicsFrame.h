@@ -25,10 +25,4 @@ typedef enum {
 - (DisplayResult)start;
 - (void)sendVideoView;
 
-<<<<<<< HEAD
-- (void)sendVideoView;
-
 @end
-=======
-@end
->>>>>>> Updating build products to version 8.3

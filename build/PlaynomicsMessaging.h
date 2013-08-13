@@ -39,10 +39,5 @@
 // Initialize a frame using data retrieved from the Playnomics Messaging Server.  The returned instance is
 // AUTORELEASED and must be retained by the clients.
 - (PlaynomicsFrame *)createFrameWithId:(NSString *)frameId;
-<<<<<<< HEAD
-
-
-=======
 - (PlaynomicsFrame *)createFrameWithId:(NSString*)frameId frameDelegate: (id<PNFrameDelegate>)frameDelegate;
->>>>>>> Updating build products to version 8.3
 @end
