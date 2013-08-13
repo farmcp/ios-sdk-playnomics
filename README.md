@@ -925,7 +925,9 @@ Optionally, associate a class that can response to PNFrameDelegate protocol, to 
         <tr>
             <td><code>frameDelegate</code></td>
             <td>id&lt;PNFrameDelegate&gt;</td>
-            <td></td>
+            <td>
+                Processes rich data callbacks, see <a href="#using-rich-data-callbacks">Using Rich Data Callbacks</a>
+            </td>
         </tr>
     </tbody>
 </table>
