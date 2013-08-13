@@ -985,14 +985,14 @@ In this use-case, we want to configure a frame that is always shown to players w
 <table>
     <thead>
         <tr>
-            <th >
+            <th>
                 Segment
             </th>
             <th>
                 Priority
             </th>
             <th>
-                Code Callback
+                Callback Behavior
             </th>
             <th>
                 Creative
@@ -1137,7 +1137,7 @@ In particular one event, for examle, a player may deplete their premium currency
                 Priority
             </th>
             <th>
-                Code Callback
+                Callback Behavior
             </th>
             <th>
                 Creative
@@ -1209,7 +1209,7 @@ In the following example, we wish to generate third-party revenue from players u
                 Priority
             </th>
             <th>
-                Code Callback
+                Callback Behavior
             </th>
             <th>
                 Creative
