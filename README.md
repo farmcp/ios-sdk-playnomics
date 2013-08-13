@@ -896,7 +896,7 @@ Loading frames through the SDK:
     </thead>
     <tbody>
         <tr>
-            <td>frameId</td>
+            <td><code>frameId</code></td>
             <td>NSString*</td>
             <td>Unique identifier for the frame.</td>
         </tr>
@@ -918,13 +918,13 @@ Optionally, associate a class that can response to PNFrameDelegate protocol, to 
     </thead>
     <tbody>
         <tr>
-            <td>frameId</td>
-            <td><code>NSString*</code></td>
+            <td><code>frameId</code></td>
+            <td>NSString*</td>
             <td>Unique identifier for the frame.</td>
         </tr>
         <tr>
-            <td>frameDelegate</td>
-            <td><code>id&lt;PNFrameDelegate&gt;</code></td>
+            <td><code>frameDelegate</code></td>
+            <td>id&lt;PNFrameDelegate&gt;</td>
             <td></td>
         </tr>
     </tbody>
