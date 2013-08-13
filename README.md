@@ -898,7 +898,7 @@ Loading frames through the SDK:
         <tr>
             <td><code>frameId</code></td>
             <td>NSString*</td>
-            <td>Unique identifier for the frame.</td>
+            <td>Unique identifier for the frame, the <code>&lt;PLAYRM-FRAME-ID&gt;</code></td>
         </tr>
     </tbody>
 </table>
@@ -920,7 +920,7 @@ Optionally, associate a class that can response to PNFrameDelegate protocol, to 
         <tr>
             <td><code>frameId</code></td>
             <td>NSString*</td>
-            <td>Unique identifier for the frame.</td>
+            <td>Unique identifier for the frame, the <code>&lt;PLAYRM-FRAME-ID&gt;</code></td>
         </tr>
         <tr>
             <td><code>frameDelegate</code></td>
