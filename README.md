@@ -1179,9 +1179,14 @@ In particular one event, for examle, a player may deplete their premium currency
 
 @implementation StoreFrameDelegate
 - (void)onClick:(NSDictionary *)jsonData{
-    if([data objectForKey: @"type"] != (id)[NSNull null] && [[data objectForKey:@"type"] isEqualToString: @"action"]){
-        if([data objectForKey: @"action"] != (id)[NSNull null] && [[data objectForKey:@"type"] isEqualToString: @"openStore"]){
+    if([data objectForKey: @"type"] != (id)[NSNull null] && 
+        [[data objectForKey:@"type"] isEqualToString: @"action"]){
+        
+        if([data objectForKey: @"action"] != (id)[NSNull null] && 
+            [[data objectForKey:@"type"] isEqualToString: @"openStore"]){
+            
             [[Store sharedInstance] open];
+        
         }
     }
 }
@@ -1271,26 +1276,29 @@ To get started with PlayRM Push Messaging, your app will need to register with A
 
 //...
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+- (BOOL)application:(UIApplication *)application 
+    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     const long long applicationId = <APPID>;
     [PlaynomicsSession startWithApplicationId:applicationId];
 
     //enable notifications
     UIApplication *app = [UIApplication sharedApplication];
-    [app registerForRemoteNotificationTypes: (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
-
+    [app registerForRemoteNotificationTypes: (UIRemoteNotificationTypeBadge 
+        | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
     //...
 }
 ```
 
 Once the player, authorizes push notifications from your app, you need to provide Playnomics with player's device token
-```
+
+```objectivec
 @implementation AppDelegate
 
 //...
 
--(void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+-(void)application:(UIApplication *)application 
+    didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
 {
    [PlaynomicsSession enablePushNotificationsWithToken:deviceToken];
 }
@@ -1330,7 +1338,8 @@ There are 3 situations in which an iOS device can receive a Push Notification
 The first situation is automatically handled by the Playnomics SDK. The other two situations, however, need to be implemented in the `didReceiveRemoteNotification` method:
 
 ```objectivec
--(void) application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+-(void) application:(UIApplication *)application 
+    didReceiveRemoteNotification:(NSDictionary *)userInfo
 {
     NSMutableDictionary *payload = [userInfo mutableCopy];
     [PlaynomicsSession pushNotificationsWithPayload:payload];
