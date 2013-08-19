@@ -10,12 +10,12 @@
 @protocol PNAdClickActionHandler
 // Called on the delegate to perform some action when the ad is clicked by the user
 @required
-    - (void)performActionOnAdClicked;
+- (void)performActionOnAdClicked;
 @end
 
 @protocol PNFrameDelegate <NSObject>
 @required
-    -(void) onClick: (NSDictionary*) jsonData;
+-(void) onClick: (NSDictionary*) jsonData;
 @end
 
 

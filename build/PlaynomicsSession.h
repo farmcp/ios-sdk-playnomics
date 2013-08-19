@@ -473,6 +473,8 @@ typedef enum {
 
 +(NSString*)stringForTrimmedDeviceToken:(NSData*)deviceToken;
 
++(void) onTouchDown: (UIEvent*) event;
+
 @end
 
 @interface PNApplication : UIApplication<UIApplicationDelegate>

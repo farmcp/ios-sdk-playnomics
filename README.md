@@ -8,13 +8,9 @@ Our integration has been optimized to be as straight forward and user friendly a
 
 Note, this is SDK is intended for working with native iOS games built with Xcode, if you're using Unity and deploying your game to iOS, please refer to the <a target="_blank" href="https://github.com/playnomics/unity-sdk#playnomics-playrm-unity-sdk-integration-guide">PlayRM Unity SDK</a>.
 
-
 ## Considerations for Cross-Platform Games
 
-If you want to deploy your game to multiple platforms (eg: iOS and the Unity Web player), you'll need to create a separate Playnomics Applications in the control panel. Each application must incorporate a separate `<APPID>` particular to that application. In addition, message frames and their respective creative uploads will be particular to that app in order to ensure that they are sized appropriately - proportionate to your game screen size.
-
-
-
+If you want to deploy your game to multiple platforms (eg: iOS, Android, etc), you'll need to create a separate Playnomics Applications in the control panel. Each application must incorporate a separate `<APPID>` particular to that application. In addition, message frames and their respective creative uploads will be particular to that app in order to ensure that they are sized appropriately - proportionate to your game screen size.
 
 Basic Integration
 =================
@@ -32,7 +28,7 @@ Then import the SDK files into your existing game through Xcode:
 
 ### Interacting with PlayRM in Your Game
 
-All session-related calls are made through a `SharedInstance` class `PlaynomicsSession` while all messaging-related calls are made through a `SharedInstance` class `PlaynomicsMessaging`. To work with any of these classes, you need to import the appropriate header file:
+All session-related calls are made through class `PlaynomicsSession` while all messaging-related calls are made through a `sharedInstance` of class `PlaynomicsMessaging`. To work with any of these classes, you need to import the appropriate header file:
 
 ```objective-c
 #import PlaynomicsSession.h
@@ -119,15 +115,47 @@ You **MUST** make the initialization call before working with any other PlayRM m
 }
 ```
 
+To track intensity, PlayRM needs to monitor touch events. We provide an implementation of the iOS `UIApplication<UIApplicationDelegate>`, which automatically captures these events. In the main.m file of your iOS application, you pass this class name into the `UIApplicationMain` method:
 
-Congratulations! You've completed our basic integration. You will now be able to track engagement behaviors (having incorporated the Engagement Module) from the PlayRM dashboard. At this point we recomend that you use our integration validation tool to test your integration of our SDK in order insure that it has been properly incorporated in your game. 
+```objectivec
+#import <UIKit/UIKit.h>
+#import "AppDelegate.h"
+#import "PlaynomicsSession.h"
+
+int main(int argc, char *argv[])
+{
+    @autoreleasepool {
+        return UIApplicationMain(argc, argv, NSStringFromClass([PNApplication class]), NSStringFromClass([AppDelegate class]));
+    }
+}
+```
+
+If you already have your own implementation of `UIApplication<UIApplicationDelegate>` in main.m, just add the following code snippet to your class implementation:
+
+```objectivec
+#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+#import "PlaynomicsSession.h"
+
+@implementation YourApplication
+- (void) sendEvent: (UIEvent *) event {
+    [super sendEvent:event];
+    if (event.type == UIEventTypeTouches) {
+        UITouch *touch = [event allTouches].anyObject;
+        if (touch.phase == UITouchPhaseBegan) {
+            [PlaynomicsSession onTouchDown: event];
+        }
+    }
+}
+@end
+```
+
+**Congratulations!** You've completed our basic integration. You will now be able to track engagement behaviors (having incorporated the Engagement Module) from the PlayRM dashboard. At this point we recomend that you use our integration validation tool to test your integration of our SDK in order insure that it has been properly incorporated in your game. 
 
 
 PlayRM is currently operating in test mode. Be sure you switch to [production mode](#switch-sdk-to-production-mode), by implementing the code call outlined in our Basic Integration before deploying your game on the web or in an app store.
 
-
 # Full Integration
-
 
 <div class="outline">
 <li>
@@ -173,10 +201,10 @@ To clarify where you are in the timeline of our integration process, you've comp
 
 
 <ul>
-<li><strong>User Info Module:</strong> - provides basic user information</li>
-<li><strong>Monetization Module:</strong> - tracks various monetization events and transactions</li>
-<li><strong>Virality Module:</strong> - tracks the social activities of users</li>
-<li><strong>Milestone Module:</strong> - tracks significant player events customized to your game</li>
+    <li><strong>User Info Module:</strong> - provides basic user information</li>
+    <li><strong>Monetization Module:</strong> - tracks various monetization events and transactions</li>
+    <li><strong>Virality Module:</strong> - tracks the social activities of users</li>
+    <li><strong>Milestone Module:</strong> - tracks significant player events customized to your game</li>
 </ul>
 
 
@@ -669,8 +697,8 @@ If multiple requests can be sent at the same time, a separate call should be mad
 
 ```objectivec
 + (PNAPIResult) invitationSentWithId: (signed long long) invitationId
-                     recipientUserId: (NSString *) recipientUserId 
-                    recipientAddress: (NSString *) recipientAddress 
+                     recipientUserId: (NSString *) recipientUserId
+                    recipientAddress: (NSString *) recipientAddress
                               method: (NSString *) method;
 ```
 <table>
@@ -849,7 +877,6 @@ If you ever wish to test or troubleshoot your integration later on, simply set `
 **`https://controlpanel.playnomics.com/validation/<APPID>`**
 
 
-
 Messaging Integration
 =====================
 This guide assumes you're already familiar with the concept of frames and messaging, and that you have all of the relevant `frames` setup for your application.
@@ -932,7 +959,11 @@ Optionally, associate a class that can response to PNFrameDelegate protocol, to 
     </tbody>
 </table>
 
-Frames are loaded asynchronously to keep your game responsive. The `createFrameWithId` call begins the frame loading process. However, until you call `start` on the frame, the frame will not be drawn in the UI. This gives you control over when a frame will appear. Frames are destroyed on a ViewController transition or when closed.
+If you are not using ARC, keep in mind that:
+* You do not need to `release` the PlaynomicsFrame object. The PlayRM SDK will automatically release the frame when it is closed.
+* You do need to `release` PNFrameDelegate. PlayRM only stores a `weak` reference to the delegate to avoid strong reference cycles.
+
+* Frames are loaded asynchronously to keep your game responsive. The `createFrameWithId` call begins the frame loading process. However, until you call `start` on the frame, the frame will not be drawn in the UI. This gives you control over when a frame will appear. Frames are destroyed on a ViewController transition or when closed.
 
 In the example below, we initialize the frame when view is visible and then show it in another event delegate.
 
@@ -941,14 +972,17 @@ In practice, a frame can be loaded in a variety of ways.
 ```objectivec
 #import "ViewController.h"
 
-@implementation ViewController
+@implementation ViewController{
+    PlaynomicsFrame* _frame;
+}
+
 - (void)viewDidLoad{
     PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
-    frame = [messaging createFrameWithId: @"<PLAY-FRAME-ID>"];
+    _frame = [messaging createFrameWithId: @"<PLAY-FRAME-ID>"];
 }
 
 -void someOtherEvent{
-    [frame.start];
+    [_frame start];
 }
 @end
 ```
@@ -1058,7 +1092,9 @@ In this use-case, we want to configure a frame that is always shown to players w
 
 @implementation AwardFrameDelegate
 - (void)onClick:(NSDictionary *)jsonData{
-    if([data objectForKey: @"type"] != (id)[NSNull null] && [[data objectForKey:@"type"] isEqualToString: @"award"]){
+    if([data objectForKey: @"type"] != (id)[NSNull null] &&
+         [[data objectForKey:@"type"] isEqualToString: @"award"]){
+        
         if([data objectForKey: @"award"] != (id)[NSNull null]){
             NSDictionary* award = [data objectForKey: @"award"];
             
@@ -1076,13 +1112,23 @@ In this use-case, we want to configure a frame that is always shown to players w
 And then attaching this AwardFrameDelegate class to the frame shown in the first game scene:
 
 ```objectiveC
--void viewDidLoad{
-    PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
-    AwardFrameDelegate* awardDelegate = [[AwardFrameDelegate alloc] init];
-    PlaynomicsFrame* frame = [messaging createFrameWithId : frameId frameDelegate : frameDelegate];
-    [frame start];
-    [frameDelegate awardDelegate];
+@implementation GameViewController{
+    AwardFrameDelegate* _awardDelegate;
+    PlaynomicsFrame* _frame;
 }
+-(void) viewDidLoad{
+    PlaynomicsMessaging* messaging = [PlaynomicsMessaging sharedInstance];
+    _awardDelegate = [[AwardFrameDelegate alloc] init];
+    _frame = [messaging createFrameWithId : frameId frameDelegate : _awardDelegate];
+    [_frame start];
+}
+
+-(void) dealloc{
+    //make sure to release the delegate, if you are not using ARC
+    [_awardDelegate release];
+    [super dealloc];
+}
+@end
 ```
 
 The related messages would be configured in the Control Panel to use this callback by placing this in the **Target Data** for each message:
@@ -1338,7 +1384,7 @@ There are 3 situations in which an iOS device can receive a Push Notification
 The first situation is automatically handled by the Playnomics SDK. The other two situations, however, need to be implemented in the `didReceiveRemoteNotification` method:
 
 ```objectivec
--(void) application:(UIApplication *)application 
+-(void) application:(UIApplication *)application
     didReceiveRemoteNotification:(NSDictionary *)userInfo
 {
     NSMutableDictionary *payload = [userInfo mutableCopy];
@@ -1377,6 +1423,7 @@ Change Log
 * Adding support for Rich Data Callbacks
 * Targeting the arm7, arm7s, i386 CPU Arcitectures
 * Now compatible with iOS 5 and above
+* Supporting touch events for Cocos2DX
 
 ####  Version 8.2
 * Support for video ads
