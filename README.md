@@ -18,9 +18,8 @@ Basic Integration
 You can download the SDK by forking this repo or downloading the archived files. All of the necessary install files are in the *build* folder:
 
 * libplaynomics.a
-* PlaynomicsFrame.h
-* PlaynomicsMessaging.h
-* PlaynomicsSession.h
+* Playnomics.h
+* PNLogger.h
 
 Then import the SDK files into your existing game through Xcode:
 
@@ -201,187 +200,12 @@ To clarify where you are in the timeline of our integration process, you've comp
 
 
 <ul>
-    <li><strong>User Info Module:</strong> - provides basic user information</li>
     <li><strong>Monetization Module:</strong> - tracks various monetization events and transactions</li>
-    <li><strong>Virality Module:</strong> - tracks the social activities of users</li>
     <li><strong>Milestone Module:</strong> - tracks significant player events customized to your game</li>
 </ul>
 
 
 Along with integration instructions for our various modules, you will also find integration information pertaining to messaging frame setup, and push setup within this documentation.
-
-## Demographics and Install Attribution
-
-After the SDK is loaded, the user info module may be called to collect basic demographic and acquisition information. This data is used to segment users based on how/where they were acquired and enables improved targeting with basic demographics, in addition to the behavioral data collected using other events.
-
-Provide each user's information using this call:
-
-```objectivec
-+ (PNAPIResult) userInfoForType: (PNUserInfoType) type 
-                        country: (NSString *) country 
-                    subdivision: (NSString *) subdivision
-                            sex: (PNUserInfoSex) sex
-                       birthday: (NSDate *) birthday
-                         source: (PNUserInfoSource) source 
-                 sourceCampaign: (NSString *) sourceCampaign 
-                    installTime: (NSDate *) installTime;
-```
-
-If any of the parameters are not available, you should pass `nil`.
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-                <code>type</code>
-            </td>
-            <td>
-                PNUserInfoType
-            </td>
-            <td>
-                There is currently only one option available for this: <strong>PNUserInfoTypeUpdate</strong> for userInfo updates.
-            </td>
-        </tr>
-        <tr>
-            <td><code>country</code></td>
-            <td>NSString *</td>
-            <td>This has been deprecated. Just pass <code>nil</code>.</td>
-        </tr>
-        <tr>
-            <td><code>subdivision</code></td>
-            <td>NSString *</td>
-            <td>This has been deprecated. Just pass <code>nil</code>.</td>
-        </tr>
-        <tr>
-            <td><code>sex</code></td>
-            <td>PNUserInfoSex</td>
-            <td>
-                <ul>
-                    <li>PNUserInfoSexMale</li>
-                    <li>PNUserInfoSexFemale</li>
-                    <li>PNUserInfoSexUnknown</li>
-                </ul>
-            </td>
-        </tr>
-        <tr>
-            <td><code>birthday</code></td>
-            <td>NSDate</td>
-            <td>A birthday for the player.</td>
-        </tr>
-        <tr>
-            <td><code>sourceAsString</code></td>
-            <td>NSString *</td>
-            <td>
-                Source of the user, such as "FacebookAds", "UserReferral", "Playnomics", etc. These are only suggestions, any 16-character or shorter string is acceptable.
-            </td>
-        </tr>
-        <tr>
-            <td><code>sourceCampaign</code></td>
-            <td>NSString *</td>
-            <td>
-                Any 16-character or shorter string to help identify specific campaigns
-            </td>
-        </tr>
-        <tr>
-            <td><code>installTime</code></td>
-            <td>NSDate *</td>
-            <td>
-                When the player originally installed the game.
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-This method is overloaded, with the ability to use an enum for the source
-
-```objectivec
-+ (PNAPIResult) userInfoForType: (PNUserInfoType) type 
-                        country: (NSString *) country 
-                    subdivision: (NSString *) subdivision
-                            sex: (PNUserInfoSex) sex
-                       birthday: (NSDate *) birthday
-                 sourceAsString: (NSString *) source 
-                 sourceCampaign: (NSString *) sourceCampaign 
-                    installTime: (NSDate *) installTime;
-```
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><code>source</code></td>
-            <td>PNUserInfoSource</td>
-            <td>
-                You can use a predefined enumeration of PNUserInfoSource
-                <br/>
-                <ul>
-                    <li>PNUserInfoSourceAdwords</li>
-                    <li>PNUserInfoSourceDoubleClick</li>
-                    <li>PNUserInfoSourceYahooAds</li>
-                    <li>PNUserInfoSourceMSNAds</li>
-                    <li>PNUserInfoSourceAOLAds</li>
-                    <li>PNUserInfoSourceAdbrite</li>
-                    <li>PNUserInfoSourceFacebookAds</li>
-                    <li>PNUserInfoSourceGoogleSearch</li>
-                    <li>PNUserInfoSourceYahooSearch</li>
-                    <li>PNUserInfoSourceBingSearch</li>
-                    <li>PNUserInfoSourceFacebookSearch</li>
-                    <li>PNUserInfoSourceApplifier</li>
-                    <li>PNUserInfoSourceAppStrip</li>
-                    <li>PNUserInfoSourceVIPGamesNetwork</li>
-                    <li>PNUserInfoSourceUserReferral</li>
-                    <li>PNUserInfoSourceInterGame</li>
-                    <li>PNUserInfoSourceOther</li>
-                </ul>
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-Since PlayRM uses the game client's IP address to determine geographic location, country and subdivision should be set to `nil`.
-
-```objectivec
-#import "AppDelegate.h"
-#import "PlaynomicsSession.h"
-@implementation AppDelegate
-
-//...
-//...
-//...
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-    
-    //after you initialize the PlayRM Sessions
-    NSDate *installDate = nil;
-    if(isNewUser){
-        installDate = [NSDate date];
-    }
-
-    PNAPIResult result = [PlaynomicsSession 
-                    userInfoForType: PNUserInfoTypeUpdate
-                    country: nil
-                    subdivision: nil
-                    sex: PNUserInfoSexFemale
-                    birthday: [[NSDate alloc] initWithString:@"1980-01-01"];
-                    source: @"AppStore"
-                    sourceCampaign: @"Facebook Ad"
-                    installTime: installDate];
-}
-```
 
 ## Monetization
 
