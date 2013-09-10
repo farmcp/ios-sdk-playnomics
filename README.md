@@ -103,7 +103,7 @@ We strongly recommend running the self-check validator before deploying your new
 
 ## Switch SDK to Production Mode
 
-Once you have [validated](#validate-integration) your integration, switch the SDK from **test** to **production** mode by simply setting the `PlaynomicsSession`'s `setTestMode` field to `NO` (or by removing/commenting out the call entirely) in the initialization block:
+Once you have [validated](#validate-integration) your integration, switch the SDK from **test** to **production** mode by simply setting `setTestMode` field to `NO` (or by removing/commenting out the call entirely) in the initialization block:
 
 ```objectivec
 //...
@@ -118,9 +118,9 @@ Once you have [validated](#validate-integration) your integration, switch the SD
 ```
 If you ever wish to test or troubleshoot your integration later on, simply set `setTestMode` back to `YES` and revisit the self-check validation tool for your application:
 
-**`https://controlpanel.playnomics.com/validation/<APPID>`**
+**`https://controlpanel.playnomics.com/applications/<APPID>`**
 
-**Congratulations!** You've completed our basic integration. You will now be able to track engagement data through the PlayRM dashboard.
+**Congratulations!** You've completed our basic integration. You will now be able to track engagement data through the PlayRM dashboard. PlayRM also enables you to message players with internal offer your players, and to track monetization and custom events.
 
 Full Integration
 ================
@@ -140,17 +140,6 @@ Full Integration
         </li>
         <li>
             <a href="#monetization">Monetization</a>
-            <ul>
-                <li>
-                    <a href="#purchases-of-in-game-currency-with-real-currency">Purchases of In-Game Currency with Real Currency</a>
-                </li>
-                <li>
-                    <a href="#purchases-of-items-with-real-currency">Purchases of Items with Real Currency</a>
-                </li>
-                <li>
-                    <a href="#purchases-of-items-with-premium-currency">Purchases of Items with Premium Currency</a>
-                </li>
-            </ul>
         </li>
         <li>
             <a href="#custom-event-tracking">Custom Event Tracking</a>
@@ -167,79 +156,14 @@ Full Integration
     </ul>
 </div>
 
-After you've complete the basic integration.
-
-If you're reading this it's likely that you've integrated our SDK and are interested in tailoring PlayRM to suit your particular segmentation needs.
-
-To clarify where you are in the timeline of our integration process, you've completed our basic integration. Doing so will enable you to track engagement behaviors from the PlayRM dashboard (having incorporated the Engagement Module). The following documentation will provides succint information on how to incorporate additional and more in-depth segmentation functionality by integrating any, or all of the following into your game:
-
-
-<ul>
-    <li><strong>Monetization Module:</strong> - tracks various monetization events and transactions</li>
-    <li><strong>Milestone Module:</strong> - tracks significant player events customized to your game</li>
-</ul>
-
-
-Along with integration instructions for our various modules, you will also find integration information pertaining to messaging frame setup, and push setup within this documentation.
 
 ## Monetization
 
-PlayRM provides a flexible interface for tracking monetization events. This module should be called every time a player triggers a monetization event. 
-
-This event tracks users that have monetized and the amount they have spent in total, *real* currency:
-* FBC (Facebook Credits)
-* USD (US Dollars)
-
-or an in-game, *virtual* currency.
-
-This outlines how currencies are described in PlayRM iOS
-
-<table>
-    <thead>
-        <tr>
-            <th>Currency</th>
-            <th>Currency Data Type</th>
-            <th>PNCurrencyCategoryType</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>Real</td>
-            <td>
-                <strong>PNCurrencyType</strong>
-                <ul>
-                    <ul>
-                        <li>PNCurrencyUSD: USD dollars</li>
-                        <li>PNCurrencyFBC: Facebook Credits</li>
-                    </ul>
-                </ul>
-            </td>
-            <td>
-                The <code>currencyCategory</code> is <strong>PNCurrencyCategoryReal</strong>
-            </td>
-        </tr>
-        <tr>
-            <td>Virutal</td>
-            <td>
-                An <strong>NSString *</strong> name, 16 characters or less.
-            </td>
-            <td>
-                The <code>currencyCategory</code> is <strong>PNCurrencyCategoryVirtual</strong>
-            </td>
-        </tr>
-    </tbody>
-</table>
-
+PlayRM allows you to track monetization through in-app purchases denominated in real US dollars.
 
 ```objectivec
-+ (PNAPIResult) transactionWithId: (signed long long) transactionId
-                           itemId: (NSString *) itemId
-                         quantity: (double) quantity
-                             type: (PNTransactionType) type
-                      otherUserId: (NSString *) otherUserId
-                    currencyTypes: (NSArray *) currencyTypes
-                   currencyValues: (NSArray *) currencyValues
-               currencyCategories: (NSArray *) currencyCategories; 
++ (void) transactionWithUSDPrice: (NSNumber *) priceInUSD
+                        quantity: (NSInteger) quantity;
 ```
 <table>
     <thead>
@@ -251,242 +175,27 @@ This outlines how currencies are described in PlayRM iOS
     </thead>
     <tbody>
         <tr>
-            <td><code>transactionId</code></td>
-            <td>signed long long</td>
-            <td>
-                A unique identifier for this transaction. If you don't have a transaction ID from payments system, you can genenate large random number.
-            </td>
-        </tr>
-        <tr>
-            <td><code>itemId</code></td>
-            <td>NSString *</td>
-            <td>If applicable, an identifier for the item. The identifier should be consistent.</td>
+            <td><code>priceInUSD</code></td>
+            <td>NSNumber *</td>
+            <td>The price of the item in USD.</td>
         </tr>
         <tr>
             <td><code>quantity</code></td>
-            <td>double</td>
-            <td>If applicable, the number of items being purchased.</td>
-        </tr>
-        <tr>
-            <td><code>transactionType<code></td>
-            <td>PNTransactionType</td>
+            <td>NSInteger</td>
             <td>
-                The type of transaction occurring:
-                <ul>
-                    <li>
-                        <strong>PNTransactionBuyItem</strong>: A purchase of virtual item. The <code>quantity</code> is added to the player's inventory</li>
-                    <li>
-                        <strong>PNTransactionSellItem</strong>: A sale of a virtual item to another player. The item is removed from the player's inventory. Note: a sale of an item will result in two events with the same <code>transactionId</code>, one for the sale with type SellItem, and one for the receipt of that sale, with type BuyItem.
-                    </li>
-                    <li>
-                        <strong>PNTransactionReturnItem</strong>: A return of a virtual item to the store. The item is removed from the player's inventory
-                    </li>
-                    <li><strong>PNTransactionBuyService</strong>: A purchase of a service, e.g., VIP membership </li>
-                    <li><strong>PNTransactionSellService</strong>: The sale of a service to another player</li>
-                    <li><strong>PNTransactionReturnService</strong>: The return of a service</li>
-                    <li>
-                        <strong>PNTransactionCurrencyConvert</strong>: A conversion of currency from one form to another, usually in the form of real currency (e.g., US dollars) to virtual currency.  If the type of a transaction is CurrencyConvert, then there should be at least 2 elements in the <code>currencyTypes</code>, 
-                        <code>currencyValues</code>, and <code>currencyCategories</code>  arrays
-                    </li>
-                    <li>
-                        <strong>PNTransactionInitial</strong>: An initial allocation of currency and/or virtual items to a new player
-                    </li>
-                    <li><strong>PNTransactionFree</strong>: Free currency or item given to a player by the application</li>
-                    <li>
-                        <strong>PNTransactionReward</strong>: Currency or virtual item given by the application as a reward for some action by the player
-                    </li>
-                    <li>
-                        <strong>PNTransactionGiftSend</strong>: A virtual item sent from one player to another. Note: a virtual gift should result in two transaction events with the same <code>transactionId</code>, one with the type GiftSend, and another with the type GiftReceive
-                    </li>
-                    <li>
-                        <strong>PNTransactionGiftReceive</strong>: A virtual good received by a player. See note for <strong>PNTransactionGiftSend</strong> type
-                     </li>
-                </ul>
-            </td>
-        </tr>
-        <tr>
-            <td><code>otherUserId</code></td>
-            <td>NSString *</td>
-            <td>
-               If applicable, the other user involved in the transaction. A contextual example is a player sending a gift to another player.
-            </td>
-        </tr>
-        <tr>
-            <td><code>currencyTypes</code></td>
-            <td>NSArray *</td>
-            <td>
-                An array of currencyTypes, type is either NSString * or PNCurrencyType.
-            </td>
-        </tr>
-        <tr>
-            <td><code>currencyValues</code></td>
-            <td>>NSArray *</td>
-            <td>An array of currency values, type is a double.</td>
-        </tr>
-        <tr>
-            <td><code>currencyCategories</code></td>
-            <td>>NSArray *</td>
-            <td>
-                An array of currency categories, type is PNCurrencyCategoryType.
+               The number of items being purchased at the price specified.
             </td>
         </tr>
     </tbody>
 </table>
 
 
-An overload for `transactionWithId` with a single `currencyType` of <strong>PNCurrencyType</strong>.
-
-```objectivec
-+ (PNAPIResult) transactionWithId: (signed long long) transactionId
-                           itemId: (NSString *) itemId
-                         quantity: (double) quantity
-                             type: (PNTransactionType) type
-                      otherUserId: (NSString *) otherUserId
-                     currencyType: (PNCurrencyType) currencyType
-                    currencyValue: (double) currencyValue
-                 currencyCategory: (PNCurrencyCategory) currencyCategory;
-```
-
-All arguments are the same as the previous method, except that the `currencyType`,`currencyValue`, and `currencyCategory` are singular. The `currencyCategory` is likely PNCurrencyCategoryReal.
-
-
-An overload for `transactionWithId` with a single `currencyTypeAsString` of <strong>NSString *</strong>.
-
-```objectivec
-+ (PNAPIResult) transactionWithId: (signed long long) transactionId
-                           itemId: (NSString *) itemId
-                         quantity: (double) quantity
-                             type: (PNTransactionType) type
-                      otherUserId: (NSString *) otherUserId
-             currencyTypeAsString: (NSString *) currencyType
-                    currencyValue: (double) currencyValue
-                 currencyCategory: (PNCurrencyCategory) currencyCategory;
-```
-
-All arguments are the same as the first method, except that the `currencyTypeAsString`,`currencyValue`, and `currencyCategory` are singular. The `currencyCategory` is likely PNCurrencyCategoryVirtual.
-
-We highlight three common use-cases below.
-* [Purchases of In-Game Currency with Real Currency](#purchases-of-in-game-currency-with-real-currency)
-* [Purchases of Items with Real Currency](#purchases-of-items-with-real-currency)
-* [Purchases of Items with In-Game Currency](#purchases-of-items-with-in-game-currency)
-
-### Purchases of In-Game Currency with Real Currency
-
-A very common monetization strategy is to incentivize players to purchase premium, in-game currency with real currency. PlayRM treats this like a currency exchange. This is one of the few cases where multiple currencies are used in a transaction (first implementation of `transactionWithId`. `itemId`, `quantity`, and `otherUserId` are left `null`.
-
-```objectivec
-//player purchases 500 MonsterBucks for 10 USD
-
-NSMutableArray *currencyTypes = [NSMutableArray array];
-NSMutableArray *currencyValues = [NSMutableArray array];
-NSMutableArray *currencyCategories = [NSMutableArray array];
-
-//notice that we're adding all data about each currency in order
-
-//in-game currency
-[currencyTypes addObject: @"MonsterBucks"];
-[currencyValues addObject: [NSNumber numberWithDouble: 500]];
-[currencyCategories addObject: [NSNumber numberWithInt: PNCurrencyCategoryVirtual]];
-
-//real currency
-[currencyTypes addObject: [NSNumber numberWithInt: PNCurrencyUSD]];
-[currencyValues addObject: [NSNumber numberWithDouble: -10]];
-[currencyCategories addObject: [NSNumber numberWithInt: PNCurrencyCategoryReal]];
-
-PNAPIResult result = [PlaynomicsSession transactionWithId: transactionId 
-                            itemId: nil 
-                            quantity: 0
-                            type: PNTransactionCurrencyConvert
-                            otherUserId: nil
-                            currencyTypes: currencyTypes
-                            currencyValues: currencyValues
-                            currencyCategories: currencyCategories];
-```
-
-### Purchases of Items with Real Currency
-
-```objectivec
-//player purchases a "Monster Trap" for $.99 USD
-
-NSString *trapItemId = @"Monster Trap";
-double quantity = 1;
-double price = .99;
-
-
-PNAPIResult result = [PlaynomicsSession transactionWithId: transactionId 
-                            itemId: trapItemId 
-                            quantity: quantity
-                            type: PNTransactionBuyItem
-                            otherUserId: PNCurrencyUSD
-                            currencyType: currencyTypes
-                            currencyValue: price
-                            currencyCategory: PNCurrencyCategoryReal];
-```
-
-### Purchases of Items with Premium Currency
-
-This event is used to segment monetized players (and potential future monetizers) by collecting information about how and when they spend their premium currency (an in-game currency that is primarily acquired using a *real* currency). This is one level of information deeper than the previous use-cases.
-
-#### Currency Exchanges
-
-This is a continuation on the first currency exchange example. It showcases how to track each purchase of in-game *attention* currency (non-premium virtual currency) paid for with a *premium*:
-
 ```objectivec
 
-//In this hypothetical, Energy is an attention currency that is earned over the lifetime of the game. 
-//They can also be purchased with the premium MonsterBucks that the player may have purchased earlier.
 
-//player buys 100 Mana with 10 MonsterBucks
-
-NSMutableArray *currencyTypes = [NSMutableArray array];
-NSMutableArray *currencyValues = [NSMutableArray array];
-NSMutableArray *currencyCategories = [NSMutableArray array];
-
-//notice that we're adding all data about each currency in order
-//and that both currencies are virtual
-
-//attention currency data
-[currencyTypes addObject: @"Mana"];
-[currencyValues addObject: [NSNumber numberWithDouble: 100]];
-[currencyCategories addObject: [NSNumber numberWithInt: PNCurrencyCategoryVirtual]];
-
-//premium currency data
-[currencyTypes addObject: @"MonsterBucks"];
-[currencyValues addObject: [NSNumber numberWithDouble: -10]];
-[currencyCategories addObject: [NSNumber numberWithInt: PNCurrencyCategoryVirtual]];
-
-PNAPIResult result = [PlaynomicsSession transactionWithId: transactionId 
-                            itemId: nil 
-                            quantity: 0
-                            type: PNTransactionCurrencyConvert
-                            otherUserId: nil
-                            currencyTypes: currencyTypes
-                            currencyValues: currencyValues
-                            currencyCategories: currencyCategories];
 
 ```
-#### Item Purchases
 
-This is a continuation on the first item purchase example, except with premium currency.
-
-```objectivec
-//player buys 20 light armor, for 5 MonsterBucks
-
-double itemQuantity = 20;
-NSSString *itemId = @"Light Armor";
-
-NSString *premimumCurrency = @"MonsterBucks";
-double premiumCost = 5;
-
-[PNAPIResult result = transactionWithId: transactionId
-                           itemId: itemId
-                         quantity: itemQuantity
-                             type: PNTransactionBuyItem
-                      otherUserId: nil
-             currencyTypeAsString: premimumCurrency
-                    currencyValue: premiumCost
-                 currencyCategory: PNCurrencyCategoryVirtual];
-```
 
 ## Custom Event Tracking
 
