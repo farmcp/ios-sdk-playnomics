@@ -33,9 +33,12 @@ In the class that implements `AppDelegate`, start the PlayRM Session in the `did
 
 - (BOOL) application: (UIApplication *) application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    //Enable test mode to view your events in the Validator. Remove this line of code before releasing your game to the app store.
+    [Playnomics setTestMode: YES];
     const unsigned long long applicationId = <APPID>;
     [Playnomics startWithApplicationId:applicationId];
-    //other code to initialize the application below this
+
+    //other code to initialize your iOS application below this
 }
 ```
 You can either provide a dynamic `<USER-ID>` to identify each player:
@@ -89,9 +92,35 @@ If you already have your own implementation of `UIApplication<UIApplicationDeleg
 @end
 ```
 
-**Congratulations!** You've completed our basic integration. You will now be able to track engagement data through the PlayRM dashboard. At this point we recommend that you use our integration validation tool to test your integration of our SDK in order ensure that it has been properly incorporated in your game.
+## Validate Integration
+After you've finished the installation, you should verify your that application is correctly integrated by checkout the integration verification section of your application page.
 
-PlayRM is currently operating in test mode. Be sure you switch to [production mode](#switch-sdk-to-production-mode), by implementing the code call outlined in our Basic Integration before deploying your game on the web or in an app store.
+Simply visit the self-check page for your application: **`https://controlpanel.playnomics.com/validation/<APPID>`**
+
+The page will update with events as they occur in real-time, with any errors flagged. Visit the  <a href="http://integration.playnomics.com/technical/#self-check">self-check validation guide</a> for more information.
+
+We strongly recommend running the self-check validator before deploying your newly integrated application to production.
+
+## Switch SDK to Production Mode
+
+Once you have [validated](#validate-integration) your integration, switch the SDK from **test** to **production** mode by simply setting the `PlaynomicsSession`'s `setTestMode` field to `NO` (or by removing/commenting out the call entirely) in the initialization block:
+
+```objectivec
+//...
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+    //...
+    [PlaynomicsSession setTestMode:NO];
+    [PlaynomicsSession startWithApplicationId:applicationId];
+    //...
+}
+```
+If you ever wish to test or troubleshoot your integration later on, simply set `setTestMode` back to `YES` and revisit the self-check validation tool for your application:
+
+**`https://controlpanel.playnomics.com/validation/<APPID>`**
+
+**Congratulations!** You've completed our basic integration. You will now be able to track engagement data through the PlayRM dashboard.
 
 Full Integration
 ================
@@ -125,12 +154,6 @@ Full Integration
         </li>
         <li>
             <a href="#custom-event-tracking">Custom Event Tracking</a>
-        </li>
-        <li>
-            <a href="#validate-integration">Validate Integration</a>
-        </li>
-        <li>
-            <a href="#switch-sdk-to-production-mode">Switch SDK to Production Mode</a>
         </li>
         <li>
             <a href="#push-notfications">Push Notifications</a>
@@ -510,34 +533,6 @@ Example client-side calls for a player reaching a milestone, with generated IDs:
 int milestoneCustom1Id = arc4random();
 [PlaynomicsSession milestoneWithId: milestoneCustom2Id andName: "CUSTOM1"];
 ```
-## Validate Integration
-After configuring your selected PlayRM modules, you should verify your application's correct integration with the self-check validation service.
-
-Simply visit the self-check page for your application: **`https://controlpanel.playnomics.com/validation/<APPID>`**
-
-You can now see the most recent event data sent by the SDK, with any errors flagged. Visit the  <a href="http://integration.playnomics.com/technical/#self-check">self-check validation guide</a> for more information.
-
-We strongly recommend running the self-check validator before deploying your newly integrated application to production.
-
-## Switch SDK to Production Mode
-Once you have [validated](#validate-integration) your integration, switch the SDK from **test** to **production** mode by simply setting the `PlaynomicsSession`'s `setTestMode` field to `NO` (or by removing/commenting out the call entirely) in the initialization block:
-
-
-```objectivec
-//...
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-    //...
-    [PlaynomicsSession setTestMode:NO];
-    [PlaynomicsSession startWithApplicationId:applicationId];
-    //...
-}
-```
-If you ever wish to test or troubleshoot your integration later on, simply set `setTestMode` back to `YES` and revisit the self-check validation tool for your application:
-
-**`https://controlpanel.playnomics.com/validation/<APPID>`**
-
 
 Messaging Integration
 =====================
