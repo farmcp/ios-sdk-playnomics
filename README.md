@@ -192,7 +192,11 @@ PlayRM allows you to track monetization through in-app purchases denominated in 
 
 ```objectivec
 
+NSNumber * priceInUSD = [NSNumber numberWithFloat:0.99];
+NSInteger  quantity = 1;
 
+
+[Playnomics transactionWithUSDPrice: priceInUSD quantity: quantity];
 
 ```
 
@@ -204,8 +208,7 @@ Milestones may be defined in a number of ways.  They may be defined at certain k
 Each time a player reaches a milestone, track it with this call:
 
 ```objectivec
-+ (PNAPIResult) milestoneWithId: (signed long long) milestoneId
-                        andName: (NSString *) milestoneName;
++ (void) milestone: (PNMilestoneType) milestoneType;
 ```
 <table>
     <thead>
@@ -217,18 +220,10 @@ Each time a player reaches a milestone, track it with this call:
     </thead>
     <tbody>
         <tr>
-            <td><code>milestoneId</code></td>
-            <td>signed long long</long>
+            <td><code>milestoneType</code></td>
+            <td>PNMilestoneType</td>
             <td>
-                A unique 64-bit numeric identifier for this milestone occurrence.
-            </td>
-        </tr>
-        <tr>
-            <td><code>andName</code></td>
-            <td>NSString *</td>
-            <td>
-                The name of the milestone, which should be "CUSTOMn", where n is 1 through 5.
-                The name is case-sensitive.
+                An enum for milestones 1 through 5. Note that a basic PlayRM account only supports 5 custom milestones.
             </td>
         </tr>
     </tbody>
@@ -237,10 +232,8 @@ Each time a player reaches a milestone, track it with this call:
 Example client-side calls for a player reaching a milestone, with generated IDs:
 
 ```objectivec
-
 //when milestone CUSTOM1 is reached
-int milestoneCustom1Id = arc4random();
-[PlaynomicsSession milestoneWithId: milestoneCustom2Id andName: "CUSTOM1"];
+[PlaynomicsSession milestone: PNMilestoneCustom1];
 ```
 
 Messaging Integration
