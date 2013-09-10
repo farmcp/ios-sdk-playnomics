@@ -1,21 +1,15 @@
 Playnomics PlayRM iOS SDK Integration Guide
 =============================================
-If you're new to PlayRM and/or don't have a PlayRM account and would like to get started using PlayRM please visit   <a href="https://controlpanel.playnomics.com/signup">https://controlpanel.playnomics.com/signup</a>   to sign up. Soon after creating an account you will receive a registration confirmation email permitting you access to your PlayRM control panel.
-
-Within the control panel, click the <strong>applications</strong> tab and add your game. Upon doing so, you will recieve an <strong>Application ID</strong> and an <strong>API KEY</strong>. These two components will enable you to begin the integration process.
-
-Our integration has been optimized to be as straight forward and user friendly as possible. If you're feeling unsure or would like better understand the order the process before beginning integration, please take a moment to check out the <a href="http://integration.playnomics.com/technical/#integration-getting-started">getting started</a> page. Here you can find an overview of our integration process, and platform specific features, to help you better understand the PlayRM integration process.
-
-Note, this is SDK is intended for working with native iOS games built with Xcode, if you're using Unity and deploying your game to iOS, please refer to the <a target="_blank" href="https://github.com/playnomics/unity-sdk#playnomics-playrm-unity-sdk-integration-guide">PlayRM Unity SDK</a>.
-
 ## Considerations for Cross-Platform Games
 
 If you want to deploy your game to multiple platforms (eg: iOS, Android, etc), you'll need to create a separate Playnomics Applications in the control panel. Each application must incorporate a separate `<APPID>` particular to that application. In addition, message frames and their respective creative uploads will be particular to that app in order to ensure that they are sized appropriately - proportionate to your game screen size.
 
-Basic Integration
-=================
+Getting Started
+===============
 
-You can download the SDK by forking this repo or downloading the archived files. All of the necessary install files are in the *build* folder:
+## Download and Installing the SDK
+
+You can download the SDK by forking this repo or [downloading](https://github.com/playnomics/ios-sdk/archive/master.zip) the archived files. All of the necessary install files are in the *build* folder:
 
 * libplaynomics.a
 * Playnomics.h
@@ -25,68 +19,35 @@ Then import the SDK files into your existing game through Xcode:
 
 <img src="http://integration.playnomics.com/img/ios/xcode-import.png"/>
 
-### Interacting with PlayRM in Your Game
+## Starting a PlayRM Session
 
-All session-related calls are made through class `PlaynomicsSession` while all messaging-related calls are made through a `sharedInstance` of class `PlaynomicsMessaging`. To work with any of these classes, you need to import the appropriate header file:
+To start logging automatically tracking player engagement data, you need to first start a session. **No other SDK calls will work until you do this.**
 
-```objective-c
-#import PlaynomicsSession.h
+In the class that implements `AppDelegate`, start the PlayRM Session in the `didFinishLaunchingWithOptions` method.
+
+```objectivec
+#import "AppDelegate.h"
+#import "Playnomics.h"
+
+@implementation AppDelegate
+
+- (BOOL) application: (UIApplication *) application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+    const unsigned long long applicationId = <APPID>;
+    [Playnomics startWithApplicationId:applicationId];
+    //other code to initialize the application below this
+}
 ```
-
-All public methods, except for messaging specific calls, return an enumeration `PNAPIResult`. The values for this enumeration are:
-
-<table>
-    <thead>
-        <tr>
-            <td>Enumeration</td>
-            <td>Description</td>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><code>PNAPIResultSent</code></td>
-            <td>
-                The event has been sent to PlayRM.
-            </td>
-        </tr>        
-        <tr>
-            <td><code>PNAPIResultAlreadyStarted</code></td>
-            <td>
-                You've already started the session. [PlaynomicsSession startWithApplicationId]</code> was called unnecessarily.
-            </td>
-        </tr>
-        <tr>
-            <td><code>PNAPIResultStartNotCalled</code></td>
-            <td>
-                You didn't start the session. The SDK won't be able to report any data to the PlayRM RESTful API, until this has been done.
-            </td>
-        </tr>
-        <tr>
-            <td><code>PNAPIResultFailUnkown</code></td>
-            <td>
-                An unknown exception occurred.
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-**You always need to start a session before making any other SDK calls.**
-
-### Starting a Player Session
-
-To start collecting behavior data, you need to initialize the PlayRM session. In the class that implements `AppDelegate`, start the PlayRM Session in the `didFinishLaunchingWithOptions` method.
-
 You can either provide a dynamic `<USER-ID>` to identify each player:
 
 ```objectivec
-+ (PNAPIResult) startWithApplicationId:(signed long long) applicationId
-                                userId: (NSString *) userId;
++ (BOOL) startWithApplicationId:(unsigned long long) applicationId userId: (NSString *) userId;
 ```
 
 or have PlayRM, generate a *best-effort* unique-identifier for the player:
 
 ```objectivec
-+ (PNAPIResult) startWithApplicationId:(signed long long) applicationId;
++ (BOOL) startWithApplicationId:(unsigned long long) applicationId;
 ```
 
 If you do choose to provide a `<USER-ID>`, this value should be persistent, anonymized, and unique to each player. This is typically discerned dynamically when a player starts the game. Some potential implementations:
@@ -96,30 +57,14 @@ If you do choose to provide a `<USER-ID>`, this value should be persistent, anon
 
 **You cannot use the user's Facebook ID or any personally identifiable information (plain-text email, name, etc) for the `<USER-ID>`.**
 
-You **MUST** make the initialization call before working with any other PlayRM modules. You only need to call this method once.
+## Tracking Intensity
 
-```objectivec
-#import "AppDelegate.h"
-#import "PlaynomicsSession.h"
-
-@implementation AppDelegate
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-    const long long applicationId = <APPID>;
-
-    [PlaynomicsSession setTestMode:YES];
-    [PlaynomicsSession startWithApplicationId:applicationId];
-    //other code to initialize the application below this
-}
-```
-
-To track intensity, PlayRM needs to monitor touch events. We provide an implementation of the iOS `UIApplication<UIApplicationDelegate>`, which automatically captures these events. In the main.m file of your iOS application, you pass this class name into the `UIApplicationMain` method:
+To track player intensity, PlayRM needs to know about UI events occurring in the game. We provide an implementation of `UIApplication<UIApplicationDelegate>`, which automatically captures these events. In the **main.m** file of your iOS application, you pass this class name into the `UIApplicationMain` method:
 
 ```objectivec
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
-#import "PlaynomicsSession.h"
+#import "Playnomics.h"
 
 int main(int argc, char *argv[])
 {
@@ -134,67 +79,74 @@ If you already have your own implementation of `UIApplication<UIApplicationDeleg
 ```objectivec
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import "PlaynomicsSession.h"
+#import "Playnomics.h"
 
 @implementation YourApplication
 - (void) sendEvent: (UIEvent *) event {
     [super sendEvent:event];
-    if (event.type == UIEventTypeTouches) {
-        UITouch *touch = [event allTouches].anyObject;
-        if (touch.phase == UITouchPhaseBegan) {
-            [PlaynomicsSession onTouchDown: event];
-        }
-    }
+    [Playnomics onUIEventReceived:event];
 }
 @end
 ```
 
-**Congratulations!** You've completed our basic integration. You will now be able to track engagement behaviors (having incorporated the Engagement Module) from the PlayRM dashboard. At this point we recomend that you use our integration validation tool to test your integration of our SDK in order insure that it has been properly incorporated in your game. 
-
+**Congratulations!** You've completed our basic integration. You will now be able to track engagement data through the PlayRM dashboard. At this point we recommend that you use our integration validation tool to test your integration of our SDK in order ensure that it has been properly incorporated in your game.
 
 PlayRM is currently operating in test mode. Be sure you switch to [production mode](#switch-sdk-to-production-mode), by implementing the code call outlined in our Basic Integration before deploying your game on the web or in an app store.
 
-# Full Integration
+Full Integration
+================
 
 <div class="outline">
-<li>
-<a href="#full-integration">Full Integration</a>
-<ul>
-<li><a href="#demographics-and-install-attribution">Demographics and Install Attribution</a></li>
-<li>
-<a href="#monetization">Monetization</a>
-<ul>
-<li><a href="#purchases-of-in-game-currency-with-real-currency">Purchases of In-Game Currency with Real Currency</a></li>
-<li><a href="#purchases-of-items-with-real-currency">Purchases of Items with Real Currency</a></li>
-<li><a href="#purchases-of-items-with-premium-currency">Purchases of Items with Premium Currency</a></li>
-</ul>
-</li>
-<li><a href="#invitations-and-virality">Invitations and Virality</a></li>
-<li><a href="#custom-event-tracking">Custom Event Tracking</a></li>
-<li><a href="#validate-integration">Validate Integration</a></li>
-<li><a href="#switch-sdk-to-production-mode">Switch SDK to Production Mode</a></li>
-</ul>
-</li>
-<li>
-<a href="#messaging-integration">Messaging Integration</a>
-<ul>
-<li><a href="#sdk-integration">SDK Integration</a></li>
-<li><a href="#enabling-code-callbacks">Enabling Code Callbacks</a></li>
-</ul>
-</li>
-<ul>
-<li><a href="#push-notfications">Push Notifications</a></li>
-</ul>
-<ul>
-<li><a href="#support-issues">Support Issues</a></li>
-<li><a href="#change-log>"> Change Log</a></li>
-</ul>
+    <ul>
+        <li>
+            <a href="#messaging-integration">Messaging Integration</a>
+            <ul>
+                <li>
+                    <a href="#sdk-integration">SDK Integration</a>
+                </li>
+                <li>
+                    <a href="#enabling-code-callbacks">Enabling Code Callbacks</a>
+                </li>
+            </ul>
+        </li>
+        <li>
+            <a href="#monetization">Monetization</a>
+            <ul>
+                <li>
+                    <a href="#purchases-of-in-game-currency-with-real-currency">Purchases of In-Game Currency with Real Currency</a>
+                </li>
+                <li>
+                    <a href="#purchases-of-items-with-real-currency">Purchases of Items with Real Currency</a>
+                </li>
+                <li>
+                    <a href="#purchases-of-items-with-premium-currency">Purchases of Items with Premium Currency</a>
+                </li>
+            </ul>
+        </li>
+        <li>
+            <a href="#custom-event-tracking">Custom Event Tracking</a>
+        </li>
+        <li>
+            <a href="#validate-integration">Validate Integration</a>
+        </li>
+        <li>
+            <a href="#switch-sdk-to-production-mode">Switch SDK to Production Mode</a>
+        </li>
+        <li>
+            <a href="#push-notfications">Push Notifications</a>
+        </li>
+        <li>
+            <a href="#support-issues">Support Issues</a>
+        </li>
+        <li>
+            <a href="#change-log>">Change Log</a>
+        </li>
+    </ul>
 </div>
 
+After you've complete the basic integration.
 
 If you're reading this it's likely that you've integrated our SDK and are interested in tailoring PlayRM to suit your particular segmentation needs.
-
-The index on the right provides a holistic overview of the <strong>full integration</strong> process. From it, you can jump to specific points in this document depending on what you're looking to learn and do.
 
 To clarify where you are in the timeline of our integration process, you've completed our basic integration. Doing so will enable you to track engagement behaviors from the PlayRM dashboard (having incorporated the Engagement Module). The following documentation will provides succint information on how to incorporate additional and more in-depth segmentation functionality by integrating any, or all of the following into your game:
 
@@ -511,120 +463,6 @@ double premiumCost = 5;
              currencyTypeAsString: premimumCurrency
                     currencyValue: premiumCost
                  currencyCategory: PNCurrencyCategoryVirtual];
-```
-
-## Invitations and Virality
-
-The virality module allows you to track a single invitation from one player to another (e.g., inviting friends to join a game).
-
-If multiple requests can be sent at the same time, a separate call should be made for each recipient.
-
-```objectivec
-+ (PNAPIResult) invitationSentWithId: (signed long long) invitationId
-                     recipientUserId: (NSString *) recipientUserId
-                    recipientAddress: (NSString *) recipientAddress
-                              method: (NSString *) method;
-```
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><code>invitationId</code></td>
-            <td>signed long long</td>
-            <td>
-                A unique 64-bit integer identifier for this invitation. 
-
-                If no identifier is available, this could be a hash/MD5/SHA1 of the sender's and neighbor's IDs concatenated. <strong>The resulting identifier can not be personally identifiable.</strong>
-            </td>
-        </tr>
-        <tr>
-            <td><code>recipientUserId</code></td>
-            <td>NSString *</td>
-            <td>This can be a hash/MD5/SHA1 of the recipient's Facebook ID, their Facebook 3rd Party ID or an internal ID. It cannot be a personally identifiable ID.</td>
-        </tr>
-        <tr>
-            <td><code>recipientAddress</code></td>
-            <td>NSString *</td>
-            <td>
-                An optional way to identify the recipient, for example the <strong>hashed email address</strong>. When using <code>recipientUserId</code> this can be <code>null</code>.
-            </td>
-        </tr>
-        <tr>
-            <td><code>method</code></td>
-            <td>NSString *</td>
-            <td>
-                The method of the invitation request will include one of the following:
-                <ul>
-                    <li>facebookRequest</li>
-                    <li>email</li>
-                    <li>twitter</li>
-                </ul>
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-You can then track each invitation response. IMPORTANT: you will need to pass the invitationId through the invitation link.
-
-```objectivec
-+ (PNAPIResult) invitationResponseWithId: (signed long long) invitationId
-                         recipientUserId: (NSString *) recipientUserId
-                            responseType: (PNResponseType) responseType;
-```
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><code>invitationId</code></td>
-            <td>singed long long</td>
-            <td>The ID of the corresponding <code>invitationSent</code> event.</td>
-        </tr>
-        <tr>
-            <td><code>recipientUserId</code></td>
-            <td>NSString *</td>
-            <td>The <code>recipientUserID</code> used in the corresponding <code>invitationSent</code> event.</td>
-        </tr>
-        <tr>
-            <td><code>responseType</code></td>
-            <td>PNResponseType</td>
-            <td>
-                Currently the only response PlayRM tracks acceptance
-                <ul>
-                    <li>PNResponseTypeAccepted</li>
-                </ul>
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-Example calls for a player's invitation and the recipient's acceptance:
-
-```objective
-int invitationId = 112345675;
-NSString* recipientUserId = @"10000013";
-
-PNAPIResult sentResult = [PlaynomicsSession invitationSentWithId: invitationId
-                                    recipientUserId: recipientUserId
-                                    recipientAddress: nil 
-                                    method: nil];
-
-//later on the recipient accepts the invitation
-
-PNAPIResult responseResult = [PlaynomicsSession invitationResponseWithId: invitationId
-                                    recipientUserId: recipientUserId
-                                    responseType: PNResponseTypeAccepted];
 ```
 
 ## Custom Event Tracking
