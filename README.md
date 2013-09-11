@@ -92,6 +92,111 @@ If you already have your own implementation of `UIApplication<UIApplicationDeleg
 @end
 ```
 
+Messaging Integration
+=====================
+This guide assumes you're already familiar with the concept of frames and messaging, and that you have all of the relevant `frames` setup for your application.
+
+If you are new to PlayRM's messaging feature, please refer to <a href="http://integration.playnomics.com" target="_blank">integration documentation</a>.
+
+Once you have all of your frames created with their associated `<PLAYRM-FRAME-ID>`s, you can start the integration process.
+
+## SDK Integration
+
+We recommend that you preload all of your frames when your application loads, so that you can quickly show a frame when necessary:
+
+```objectivec
++ (void) preloadFramesWithIds: (NSString *)firstFrameId, ... NS_REQUIRES_NIL_TERMINATION;
+```
+
+```objectivec
+//...
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+    //...
+    [Playnomics setTestMode:NO];
+    [Playnomics startWithApplicationId:applicationId];
+    //preloads the frames at game start
+    [Playnomics preloadFramesWithIds:@"frame-ID-1", @"frame-ID-2", @"frame-ID-2", @"frame-ID-3", nil];
+    //...
+}
+```
+
+Then when you're ready, you can show the frame:
+
+```objectivec
++ (void) showFrameWithId:(NSString *) frameId;
+```
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>frameId</code></td>
+            <td>NSString*</td>
+            <td>Unique identifier for the frame, the <code>&lt;PLAYRM-FRAME-ID&gt;</code></td>
+        </tr>
+    </tbody>
+</table>
+
+Optionally, associate a class that can respond to the `PlaynomicsFrameDelegate` protocol, to process rich data callbacks. See [Using Rich Data Callbacks](#using-rich-data-callbacks) for more information.
+
+```objectivec
++ (void) showFrameWithId:(NSString *) frameId
+                delegate:(id<PlaynomicsFrameDelegate>) delegate;
+```
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>frameId</code></td>
+            <td>NSString*</td>
+            <td>Unique identifier for the frame, the <code>&lt;PLAYRM-FRAME-ID&gt;</code></td>
+        </tr>
+        <tr>
+            <td><code>frameDelegate</code></td>
+            <td>id&lt;PlaynomicsFrameDelegate&gt;</td>
+            <td>
+                Processes rich data callbacks, see <a href="#using-rich-data-callbacks">Using Rich Data Callbacks</a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+## Using Rich Data Callbacks
+
+Using an implementation of `PlaynomicsFrameDelegate` your game can receive notifications when a frame is:
+
+* Is shown in the screen.
+* Receives a touch event on the creative and the creative has Rich Data.
+* Is removed from the screen.
+* Can't be rendered in the view because of connectivity or other exceptions.
+
+```objectiveC
+@protocol PlaynomicsFrameDelegate <NSObject>
+@optional
+-(void) onShow: (NSDictionary *) jsonData;
+-(void) onTouch: (NSDictionary *) jsonData;
+-(void) onClose: (NSDictionary *) jsonData;
+-(void) onDidFailToRender;
+@end
+```
+
+For each of these events, your delegate may also receive Rich Data that has been tied with this creative. Rich Data is a JSON message that you can associate with your message creative. `onTouch` will only be called when you have Rich Data; in all other cases the `jsonData` value can be `nil`.
+
+The actual contents of your message can be delayed until the time of the messaging campaign configuration. However, the structure of your message needs to be decided before you can process it in your game. See [example use-cases for rich data](#example-use-cases-for-rich-data) below.
+
 ## Validate Integration
 After you've finished the installation, you should verify your that application is correctly integrated by checkout the integration verification section of your application page.
 
@@ -111,8 +216,8 @@ Once you have [validated](#validate-integration) your integration, switch the SD
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     //...
-    [PlaynomicsSession setTestMode:NO];
-    [PlaynomicsSession startWithApplicationId:applicationId];
+    [Playnomics setTestMode:NO];
+    [Playnomics startWithApplicationId:applicationId];
     //...
 }
 ```
@@ -120,24 +225,14 @@ If you ever wish to test or troubleshoot your integration later on, simply set `
 
 **`https://controlpanel.playnomics.com/applications/<APPID>`**
 
-**Congratulations!** You've completed our basic integration. You will now be able to track engagement data through the PlayRM dashboard. PlayRM also enables you to message players with internal offer your players, and to track monetization and custom events.
+
+**Congratulations!** You've completed our basic integration. You will now be able to track engagement data through the PlayRM dashboard.
 
 Full Integration
 ================
 
 <div class="outline">
     <ul>
-        <li>
-            <a href="#messaging-integration">Messaging Integration</a>
-            <ul>
-                <li>
-                    <a href="#sdk-integration">SDK Integration</a>
-                </li>
-                <li>
-                    <a href="#enabling-code-callbacks">Enabling Code Callbacks</a>
-                </li>
-            </ul>
-        </li>
         <li>
             <a href="#monetization">Monetization</a>
         </li>
@@ -146,6 +241,9 @@ Full Integration
         </li>
         <li>
             <a href="#push-notfications">Push Notifications</a>
+        </li>
+        <li>
+            <a href="#example-use-cases-for-rich-data">Example Use-Cases for Rich Data</a>
         </li>
         <li>
             <a href="#support-issues">Support Issues</a>
@@ -195,9 +293,7 @@ PlayRM allows you to track monetization through in-app purchases denominated in 
 NSNumber * priceInUSD = [NSNumber numberWithFloat:0.99];
 NSInteger  quantity = 1;
 
-
 [Playnomics transactionWithUSDPrice: priceInUSD quantity: quantity];
-
 ```
 
 
@@ -223,7 +319,7 @@ Each time a player reaches a milestone, track it with this call:
             <td><code>milestoneType</code></td>
             <td>PNMilestoneType</td>
             <td>
-                An enum for milestones 1 through 5. Note that a basic PlayRM account only supports 5 custom milestones.
+                An enum for milestones 1 through 10. Note that a basic PlayRM account only supports 5 custom milestones.
             </td>
         </tr>
     </tbody>
@@ -236,142 +332,117 @@ Example client-side calls for a player reaching a milestone, with generated IDs:
 [PlaynomicsSession milestone: PNMilestoneCustom1];
 ```
 
-Messaging Integration
-=====================
-This guide assumes you're already familiar with the concept of frames and messaging, and that you have all of the relevant `frames` setup for your application.
 
-If you are new to PlayRM's messaging feature, please refer to <a href="http://integration.playnomics.com" target="_blank">integration documentation</a>.
+Push Notifications
+==================
 
-Once you have all of your frames created with their associated `<PLAYRM-FRAME-ID>`s, you can start the integration process.
+## Registering for PlayRM Push Messaging
 
-## SDK Integration
-
-To work with, the messaging you'll need to import the appropriate header files into your UIViewController header file. 
+To get started with PlayRM Push Messaging, your app will need to register with Apple to receive push notifications. Do this by calling the `registerForRemoteNotificationTypes` method on UIApplication.
 
 ```objectivec
-#import <UIKit/UIKit.h>
-#import "PlaynomicsSession.h"
-#import "PlaynomicsFrame.h"
-#import "PlaynomicsMessaging.h"
+@implementation AppDelegate
 
-@interface ViewController : UIViewController <UITextFieldDelegate>
+//...
+
+- (BOOL)application:(UIApplication *)application 
+    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    @private
-    PlaynomicsFrame frame;
+    const long long applicationId = <APPID>;
+    [Playnomics startWithApplicationId:applicationId];
+
+    //enable notifications
+    UIApplication *app = [UIApplication sharedApplication];
+    [app registerForRemoteNotificationTypes: (UIRemoteNotificationTypeBadge 
+        | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
+    //...
 }
 ```
 
-Then you need to obtain a reference to the `PlaynomicsMessaging` singleton:
+Once the player, authorizes push notifications from your app, you need to provide Playnomics with player's device token
 
 ```objectivec
-PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
+@implementation AppDelegate
+
+//...
+
+-(void)application:(UIApplication *)application 
+    didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+{
+   [Playnomics enablePushNotificationsWithToken:deviceToken];
+}
 ```
 
-Loading frames through the SDK:
+## Push Messaging Impression and Click Tracking
 
-```objectivec
-- (PlaynomicsFrame *) createFrameWithId:(NSString *)frameId;
-```
+There are 3 situations in which an iOS device can receive a Push Notification
+
 <table>
     <thead>
         <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
+            <th>Sitatuation</th>
+            <th>Push Message Shown?</th>
+            <th>Delegate Handler</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td><code>frameId</code></td>
-            <td>NSString*</td>
-            <td>Unique identifier for the frame, the <code>&lt;PLAYRM-FRAME-ID&gt;</code></td>
-        </tr>
-    </tbody>
-</table>
-
-Optionally, associate a class that can response to PNFrameDelegate protocol, to process rich data callbacks. See [Using Rich Data Callbacks](#using-rich-data-callbacks) for more information.
-
-```objectivec
-- (PlaynomicsFrame *)createFrameWithId:(NSString*)frameId frameDelegate: (id<PNFrameDelegate>)frameDelegate;
-```
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><code>frameId</code></td>
-            <td>NSString*</td>
-            <td>Unique identifier for the frame, the <code>&lt;PLAYRM-FRAME-ID&gt;</code></td>
+            <td>App is not running</td>
+            <td rowspan="2">Yes</td>
+            <td>didFinishLaunchingWithOptions:(NSDictionary*)launchOptions</td>
         </tr>
         <tr>
-            <td><code>frameDelegate</code></td>
-            <td>id&lt;PNFrameDelegate&gt;</td>
-            <td>
-                Processes rich data callbacks, see <a href="#using-rich-data-callbacks">Using Rich Data Callbacks</a>
+            <td>App is running in the background</td>
+            <td rowspan="2">
+                didReceiveRemoteNotification:(NSDictionary*)userInfo
             </td>
         </tr>
+        <tr>
+            <td>App is running in the foreground</td>
+            <td>No</td>
+        </tr>
     </tbody>
 </table>
 
-If you are not using ARC, keep in mind that:
-* You do not need to `release` the PlaynomicsFrame object. The PlayRM SDK will automatically release the frame when it is closed.
-* You do need to `release` PNFrameDelegate. PlayRM only stores a `weak` reference to the delegate to avoid strong reference cycles.
-
-* Frames are loaded asynchronously to keep your game responsive. The `createFrameWithId` call begins the frame loading process. However, until you call `start` on the frame, the frame will not be drawn in the UI. This gives you control over when a frame will appear. Frames are destroyed on a ViewController transition or when closed.
-
-In the example below, we initialize the frame when view is visible and then show it in another event delegate.
-
-In practice, a frame can be loaded in a variety of ways.
+The first situation is automatically handled by the Playnomics SDK. The other two situations, however, need to be implemented in the `didReceiveRemoteNotification` method:
 
 ```objectivec
-#import "ViewController.h"
-
-@implementation ViewController{
-    PlaynomicsFrame* _frame;
+-(void) application:(UIApplication *)application
+    didReceiveRemoteNotification:(NSDictionary *)userInfo
+{
+    NSMutableDictionary *payload = [userInfo mutableCopy];
+    [Playnomics pushNotificationsWithPayload:payload];
+    [payload release];
 }
-
-- (void)viewDidLoad{
-    PlaynomicsMessaging *messaging = [PlaynomicsMessaging sharedInstance];
-    _frame = [messaging createFrameWithId: @"<PLAY-FRAME-ID>"];
-}
-
--void someOtherEvent{
-    [_frame start];
-}
-@end
 ```
 
-## Using Rich Data Callbacks
+By default, iOS does not show push notifications when your app is already in the foreground. Consequently, PlayRM does NOT track these push notifications as impressions nor clicks. However, if you do circumvent this default behavior and show the Push Notification when the app is in the foreground, you can override this functionality by adding the following line of code in the `didReceiveRemoteNotification` method:
 
-Depending on your configuration, a variety of actions can take place when a frame's message is pressed or clicked:
-
-* Redirect the player to a web URL in Safari
-* Firing a Rich Data callback in your game
-* Or in the simplest case, just close, provided that the **Close Button** has been configured correctly.
-
-Rich Data is a JSON message that you associate with your message creative. When the player presses the message, the PlayRM SDK bubbles-up the associated JSON object to an object that can respond to the protocol, `PNFrameDelegate`, associated with the frame.
-
-```objectiveC
-@protocol PNFrameDelegate <NSObject>
-@required
-    -(void) onClick: (NSDictionary*) jsonData;
-@end
+```objectivec
+    [payload setObject:[NSNumber numberWithBool:NO] forKey:@"pushIgnored"];
 ```
-The actual contents of your message can be delayed until the time of the messaging campaign configuration. However, the structure of your message needs to be decided before you can process it in your game. 
 
-**The Rich Data callback will not fire if the Close button is pressed.**
+This will allow each push notification to be treated as a click even if the app is in the foreground.
 
-Here are three common use cases for frames and a messaging campaigns
+## Clearing Push Badge Numbers
+
+When you send push notifications, you can configure a badge number that will be set on your application icon in the home screen. When you send push notifications, you can configure a badge number that will be set on your application. iOS defers the responsibility of resetting the badge number to the developer. 
+
+To do this, insert this code snippet in the `applicationWillResignActive` method of your `UIAppDelegate`
+
+```objectivec
+- (void)applicationWillResignActive:(UIApplication *)application {
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
+}
+```
+
+## Example Use-Cases for Rich Data
+
+Here are three common use cases for frames and a messaging campaigns:
 
 * [Game Start Frame](#game-start-frame)
 * [Event Driven Frame - Open the Store](#event-driven-frame-open-the-store) for instance, when the player is running low on premium currency
 * [Event Driven Frame - Level Completion](#event-driven-drame-level-completion)
-
 
 ### Game Start Frame
 
@@ -438,8 +509,8 @@ In this use-case, we want to configure a frame that is always shown to players w
 //AwardFrameDelegate.h
 
 #import <Foundation/Foundation.h>
-#import "PlaynomicsMessaging.h"
-@interface AwardFrameDelegate : NSObject<PNFrameDelegate>
+#import "Playnomics.h"
+@interface AwardFrameDelegate : NSObject<PlaynomicsFrameDelegate>
 @end
 
 //AwardFrameDelegate.m
@@ -453,10 +524,10 @@ In this use-case, we want to configure a frame that is always shown to players w
 - (void)onClick:(NSDictionary *)jsonData{
     if([data objectForKey: @"type"] != (id)[NSNull null] &&
          [[data objectForKey:@"type"] isEqualToString: @"award"]){
-        
+
         if([data objectForKey: @"award"] != (id)[NSNull null]){
             NSDictionary* award = [data objectForKey: @"award"];
-            
+
             NSString* item = [award objectForKey: @"item"];
             NSNumber* quantity = [award objectForKey: @"quantity"];
 
@@ -473,13 +544,11 @@ And then attaching this AwardFrameDelegate class to the frame shown in the first
 ```objectiveC
 @implementation GameViewController{
     AwardFrameDelegate* _awardDelegate;
-    PlaynomicsFrame* _frame;
 }
+
 -(void) viewDidLoad{
-    PlaynomicsMessaging* messaging = [PlaynomicsMessaging sharedInstance];
     _awardDelegate = [[AwardFrameDelegate alloc] init];
-    _frame = [messaging createFrameWithId : frameId frameDelegate : _awardDelegate];
-    [_frame start];
+    [Playnomics showFrameWithId: frameId delegate: _frameDelegate];
 }
 
 -(void) dealloc{
@@ -571,8 +640,8 @@ In particular one event, for examle, a player may deplete their premium currency
 //StoreFrameDelegate.h
 
 #import <Foundation/Foundation.h>
-#import "PlaynomicsMessaging.h"
-@interface StoreFrameDelegate : NSObject<PNFrameDelegate>
+#import "Playnomics.h"
+@interface StoreFrameDelegate : NSObject<PlaynomicsFrameDelegate>
 @end
 
 //StoreFrameDelegate.m
@@ -591,7 +660,6 @@ In particular one event, for examle, a player may deplete their premium currency
             [[data objectForKey:@"type"] isEqualToString: @"openStore"]){
             
             [[Store sharedInstance] open];
-        
         }
     }
 }
@@ -667,108 +735,6 @@ This another continuation on the `AwardFrameDelegate`, with some different data.
         "item" : "Mana",
         "quantity" : 20
     }
-}
-```
-Push Notifications
-==================
-
-## Registering for PlayRM Push Messaging
-
-To get started with PlayRM Push Messaging, your app will need to register with Apple to receive push notifications. Do this by calling the `registerForRemoteNotificationTypes` method on UIApplication.
-
-```objectivec
-@implementation AppDelegate
-
-//...
-
-- (BOOL)application:(UIApplication *)application 
-    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-    const long long applicationId = <APPID>;
-    [PlaynomicsSession startWithApplicationId:applicationId];
-
-    //enable notifications
-    UIApplication *app = [UIApplication sharedApplication];
-    [app registerForRemoteNotificationTypes: (UIRemoteNotificationTypeBadge 
-        | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
-    //...
-}
-```
-
-Once the player, authorizes push notifications from your app, you need to provide Playnomics with player's device token
-
-```objectivec
-@implementation AppDelegate
-
-//...
-
--(void)application:(UIApplication *)application 
-    didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
-{
-   [PlaynomicsSession enablePushNotificationsWithToken:deviceToken];
-}
-```
-
-## Push Messaging Impression and Click Tracking
-
-There are 3 situations in which an iOS device can receive a Push Notification
-
-<table>
-    <thead>
-        <tr>
-            <th>Sitatuation</th>
-            <th>Push Message Shown?</th>
-            <th>Delegate Handler</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>App is not running</td>
-            <td rowspan="2">Yes</td>
-            <td>didFinishLaunchingWithOptions:(NSDictionary*)launchOptions</td>
-        </tr>
-        <tr>
-            <td>App is running in the background</td>
-            <td rowspan="2">
-                didReceiveRemoteNotification:(NSDictionary*)userInfo
-            </td>
-        </tr>
-        <tr>
-            <td>App is running in the foreground</td>
-            <td>No</td>
-        </tr>
-    </tbody>
-</table>
-
-The first situation is automatically handled by the Playnomics SDK. The other two situations, however, need to be implemented in the `didReceiveRemoteNotification` method:
-
-```objectivec
--(void) application:(UIApplication *)application
-    didReceiveRemoteNotification:(NSDictionary *)userInfo
-{
-    NSMutableDictionary *payload = [userInfo mutableCopy];
-    [PlaynomicsSession pushNotificationsWithPayload:payload];
-    [payload release];
-}
-```
-
-By default, iOS does not show push notifications when your app is already in the foreground. Consequently, PlayRM does NOT track these push notifications as impressions nor clicks. However, if you do circumvent this default behavior and show the Push Notification when the app is in the foreground, you can override this functionality by adding the following line of code in the `didReceiveRemoteNotification` method:
-
-```objectivec
-    [payload setObject:[NSNumber numberWithBool:NO] forKey:@"pushIgnored"];
-```
-
-This will allow each push notification to be treated as a click even if the app is in the foreground.
-
-## Clearing Push Badge Numbers
-
-When you send push notifications, you can configure a badge number that will be set on your application icon in the home screen. When you send push notifications, you can configure a badge number that will be set on your application. iOS defers the responsibility of resetting the badge number to the developer. 
-
-To do this, insert this code snippet in the `applicationWillResignActive` method of your `UIAppDelegate`
-
-```objectivec
-- (void)applicationWillResignActive:(UIApplication *)application {
-    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
 }
 ```
 
