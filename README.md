@@ -240,7 +240,7 @@ Full Integration
             <a href="#custom-event-tracking">Custom Event Tracking</a>
         </li>
         <li>
-            <a href="#push-notfications">Push Notifications</a>
+            <a href="#push-notifications">Push Notifications</a>
         </li>
         <li>
             <a href="#example-use-cases-for-rich-data">Example Use-Cases for Rich Data</a>
@@ -331,7 +331,6 @@ Example client-side calls for a player reaching a milestone, with generated IDs:
 //when milestone CUSTOM1 is reached
 [PlaynomicsSession milestone: PNMilestoneCustom1];
 ```
-
 
 Push Notifications
 ==================
@@ -436,7 +435,8 @@ To do this, insert this code snippet in the `applicationWillResignActive` method
 }
 ```
 
-## Example Use-Cases for Rich Data
+Example Use-Cases for Rich Data
+===============================
 
 Here are three common use cases for frames and a messaging campaigns:
 
